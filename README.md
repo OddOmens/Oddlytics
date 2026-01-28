@@ -24,14 +24,32 @@ Privacy-first, self-hosted analytics engine for iOS apps built on Cloudflare's f
 3. **Worker**: `cd packages/worker && npm install && wrangler dev`
 4. **Dashboard**: `cd packages/dashboard && npm install && npm run dev`
 
-### Swift Package
+## Deployment
 
-Add to your app's `Package.swift`:
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete deployment instructions to Cloudflare.
+
+## Swift Package Usage
+
+Add to your iOS app's `Package.swift`:
 
 ```swift
 dependencies: [
     .package(url: "https://github.com/yourusername/Oddlytics", from: "1.0.0")
 ]
+```
+
+Then configure in your app:
+
+```swift
+import Oddlytics
+
+Analytics.configure(
+    endpoint: "https://your-worker.workers.dev",
+    apiKey: "your-secret-key",
+    appId: "MyApp"
+)
+
+Analytics.track("screen_view", metadata: ["screen": "Home"])
 ```
 
 ## Documentation
