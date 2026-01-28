@@ -48,6 +48,14 @@ Because you deploy the Worker and D1 database to *your own* Cloudflare account, 
     ```
     *Note the URL of your deployed worker (e.g., `https://oddlytics-worker.yourname.workers.dev`).*
 
+> [!IMPORTANT]
+> **Updating an Existing Deployment?**
+> If you have already deployed Oddlytics and are updating to a newer version, you MUST run the schema update to create new tables (like `app_settings` and `event_aliases`):
+> ```bash
+> # Run this from the root of the project
+> npx wrangler d1 execute oddlytics-db --file=./schema.sql
+> ```
+
 7.  **Secure your API**:
     Generate a confusing secret key (e.g., a random UUID) and set it as a secret:
     ```bash

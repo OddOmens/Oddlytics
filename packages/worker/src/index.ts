@@ -300,7 +300,8 @@ app.get('/aliases', async (c) => {
     return c.json({ aliases });
   } catch (error) {
     console.error('Get aliases error:', error);
-    return c.json({ error: 'Failed to fetch aliases' }, 500);
+    const isMissingTable = error instanceof Error && error.message.includes('no such table');
+    return c.json({ error: isMissingTable ? 'Table "event_aliases" missing. Run migrations.' : 'Failed to fetch aliases' }, 500);
   }
 });
 
@@ -322,7 +323,8 @@ app.post('/aliases', async (c) => {
     return c.json({ success: true });
   } catch (error) {
     console.error('Upsert alias error:', error);
-    return c.json({ error: 'Failed to save alias' }, 500);
+    const isMissingTable = error instanceof Error && error.message.includes('no such table');
+    return c.json({ error: isMissingTable ? 'Table "event_aliases" missing. Run migrations.' : 'Failed to save alias' }, 500);
   }
 });
 
@@ -344,24 +346,26 @@ app.delete('/aliases', async (c) => {
     return c.json({ success: true });
   } catch (error) {
     console.error('Delete alias error:', error);
-    return c.json({ error: 'Failed to delete alias' }, 500);
+    const isMissingTable = error instanceof Error && error.message.includes('no such table');
+    return c.json({ error: isMissingTable ? 'Table "event_aliases" missing. Run migrations.' : 'Failed to delete alias' }, 500);
   }
 });
 
 // App Settings Endpoints
 
-app.get('/apps/:appId/settings', async (c) => {
+app.get('/stats/app/:appId/settings', async (c) => {
   try {
     const appId = c.req.param('appId');
     const settings = await getAppSettings(c.env.DB, appId);
     return c.json(settings || { app_id: appId, icon_url: null, display_name: null });
   } catch (error) {
     console.error('Get app settings error:', error);
-    return c.json({ error: 'Failed to fetch app settings' }, 500);
+    const isMissingTable = error instanceof Error && error.message.includes('no such table');
+    return c.json({ error: isMissingTable ? 'Table "app_settings" missing. Run migrations.' : 'Failed to fetch app settings' }, 500);
   }
 });
 
-app.post('/apps/:appId/settings', async (c) => {
+app.post('/stats/app/:appId/settings', async (c) => {
   const apiKey = c.req.header('X-API-KEY');
   if (!apiKey || apiKey !== c.env.AUTH_KEY) {
     return c.json({ error: 'Unauthorized' }, 401);
@@ -376,7 +380,8 @@ app.post('/apps/:appId/settings', async (c) => {
     return c.json({ success: true });
   } catch (error) {
     console.error('Upsert app settings error:', error);
-    return c.json({ error: 'Failed to save app settings' }, 500);
+    const isMissingTable = error instanceof Error && error.message.includes('no such table');
+    return c.json({ error: isMissingTable ? 'Table "app_settings" missing. Run migrations.' : 'Failed to save app settings' }, 500);
   }
 });
 
@@ -402,8 +407,10 @@ app.delete('/events/:eventId', async (c) => {
   } catch (error) {
     console.error('Delete event error:', error);
     const isDev = c.env.ENVIRONMENT !== 'production';
+    const isMissingTable = error instanceof Error && error.message.includes('no such table');
+
     return c.json({
-      error: 'Failed to delete event',
+      error: isMissingTable ? 'Database schema out of date. Please run: npx wrangler d1 execute oddlytics-db --file=./schema.sql' : 'Failed to delete event',
       ...(isDev && { message: error instanceof Error ? error.message : 'Unknown error' })
     }, 500);
   }

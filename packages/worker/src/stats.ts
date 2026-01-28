@@ -38,18 +38,27 @@ export async function getOverview(db: D1Database, days: number = 0) {
     `SELECT COUNT(DISTINCT user_id) as count FROM events${whereClause}`
   ).bind(...params).first<{ count: number }>();
 
-  const appsList = await db.prepare(`
-    SELECT 
-      a.app_id, 
-      a.total_events, 
-      a.total_sessions, 
-      a.first_seen, 
-      a.last_seen,
-      s.icon_url,
-      s.display_name
-    FROM event_counts_by_app a
-    LEFT JOIN app_settings s ON a.app_id = s.app_id
-  `).all();
+  let appsList: any;
+  try {
+    appsList = await db.prepare(`
+      SELECT 
+        a.app_id, 
+        a.total_events, 
+        a.total_sessions, 
+        a.first_seen, 
+        a.last_seen,
+        s.icon_url,
+        s.display_name
+      FROM event_counts_by_app a
+      LEFT JOIN app_settings s ON a.app_id = s.app_id
+    `).all();
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('no such table: app_settings')) {
+      appsList = await db.prepare('SELECT app_id, total_events, total_sessions, first_seen, last_seen FROM event_counts_by_app').all();
+    } else {
+      throw error;
+    }
+  }
 
   const topEvents = await db.prepare(
     'SELECT event_name, count FROM top_events ORDER BY count DESC LIMIT 10'

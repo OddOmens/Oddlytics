@@ -1,5 +1,5 @@
 -- Events table: stores all analytics events
-CREATE TABLE events (
+CREATE TABLE IF NOT EXISTS events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   event_name TEXT NOT NULL,
   app_id TEXT NOT NULL,
@@ -11,11 +11,14 @@ CREATE TABLE events (
 );
 
 -- Indexes for fast queries
-CREATE INDEX idx_timestamp ON events(timestamp);
-CREATE INDEX idx_app_id ON events(app_id);
-CREATE INDEX idx_event_name ON events(event_name);
+CREATE INDEX IF NOT EXISTS idx_timestamp ON events(timestamp);
+CREATE INDEX IF NOT EXISTS idx_app_id ON events(app_id);
+CREATE INDEX IF NOT EXISTS idx_event_name ON events(event_name);
 
 -- View: Event counts by app
+-- Note: SQLite views don't support IF NOT EXISTS directly in some versions, 
+-- but we can drop and recreate if needed or just leave as is.
+DROP VIEW IF EXISTS event_counts_by_app;
 CREATE VIEW event_counts_by_app AS
 SELECT
   app_id,
@@ -27,6 +30,7 @@ FROM events
 GROUP BY app_id;
 
 -- View: Top events across all apps
+DROP VIEW IF EXISTS top_events;
 CREATE VIEW top_events AS
 SELECT
   event_name,
@@ -36,7 +40,7 @@ FROM events
 GROUP BY event_name;
 
 -- Event Aliases: Custom display names for events per app
-CREATE TABLE event_aliases (
+CREATE TABLE IF NOT EXISTS event_aliases (
   app_id TEXT NOT NULL,
   event_name TEXT NOT NULL,
   alias TEXT NOT NULL,
@@ -44,7 +48,7 @@ CREATE TABLE event_aliases (
 );
 
 -- App Settings: Custom configurations per app (like icons)
-CREATE TABLE app_settings (
+CREATE TABLE IF NOT EXISTS app_settings (
   app_id TEXT PRIMARY KEY,
   icon_url TEXT,
   display_name TEXT

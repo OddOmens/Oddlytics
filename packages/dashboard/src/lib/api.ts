@@ -16,8 +16,9 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
     });
 
     if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `API Error: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || errorData.message || `API Error: ${response.statusText} (${response.status})`;
+        throw new Error(errorMessage);
     }
 
     return response.json();
@@ -109,11 +110,11 @@ export const api = {
     },
 
     getAppSettings: async (appId: string) => {
-        return fetchApi<{ app_id: string, icon_url: string | null, display_name: string | null }>(`/apps/${encodeURIComponent(appId)}/settings`);
+        return fetchApi<{ app_id: string, icon_url: string | null, display_name: string | null }>(`/stats/app/${encodeURIComponent(appId)}/settings`);
     },
 
     updateAppSettings: async (appId: string, settings: { icon_url?: string | null, display_name?: string | null }) => {
-        return fetchApi(`/apps/${encodeURIComponent(appId)}/settings`, {
+        return fetchApi(`/stats/app/${encodeURIComponent(appId)}/settings`, {
             method: 'POST',
             body: JSON.stringify(settings)
         });
