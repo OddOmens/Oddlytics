@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type { Env, TrackEventRequest, TrackBatchRequest } from './types';
+import { getOverview, getEventStats, getTimeline } from './stats';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -128,6 +129,44 @@ app.post('/track', async (c) => {
       error: 'Internal server error',
       ...(isDev && { message: error instanceof Error ? error.message : 'Unknown error' })
     }, 500);
+  }
+});
+
+// Stats endpoints (no auth required - add if needed)
+app.get('/stats/overview', async (c) => {
+  try {
+    const data = await getOverview(c.env.DB);
+    return c.json(data);
+  } catch (error) {
+    console.error('Overview error:', error);
+    return c.json({ error: 'Failed to fetch overview' }, 500);
+  }
+});
+
+app.get('/stats/events', async (c) => {
+  try {
+    const appId = c.req.query('app_id');
+    const startDate = c.req.query('start_date');
+    const endDate = c.req.query('end_date');
+
+    const data = await getEventStats(c.env.DB, appId, startDate, endDate);
+    return c.json({ events: data });
+  } catch (error) {
+    console.error('Events stats error:', error);
+    return c.json({ error: 'Failed to fetch event stats' }, 500);
+  }
+});
+
+app.get('/stats/timeline', async (c) => {
+  try {
+    const appId = c.req.query('app_id');
+    const days = parseInt(c.req.query('days') || '7');
+
+    const data = await getTimeline(c.env.DB, appId, days);
+    return c.json({ timeline: data });
+  } catch (error) {
+    console.error('Timeline error:', error);
+    return c.json({ error: 'Failed to fetch timeline' }, 500);
   }
 });
 
