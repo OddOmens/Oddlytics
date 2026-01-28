@@ -10,7 +10,7 @@ const app = new Hono<{ Bindings: Env }>();
 // Native iOS apps typically don't send Origin headers, so '*' is appropriate for mobile SDKs.
 app.use('/*', cors({
   origin: '*',
-  allowMethods: ['POST', 'GET', 'OPTIONS'],
+  allowMethods: ['POST', 'GET', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'X-API-KEY'],
 }));
 
