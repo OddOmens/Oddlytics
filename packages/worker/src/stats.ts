@@ -4,12 +4,30 @@ export async function getOverview(db: D1Database, days: number = 0) {
   let whereClause = '';
   const params: any[] = [];
 
+  let previousTotalEvents = 0;
+
   if (days > 0) {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
     const cutoffStr = cutoffDate.toISOString().split('T')[0];
     whereClause = ' WHERE date(timestamp) >= ?';
     params.push(cutoffStr);
+
+    // Calculate previous period
+    const previousStartParams: any[] = [];
+    const previousStartDate = new Date(cutoffDate);
+    previousStartDate.setDate(previousStartDate.getDate() - days);
+    const previousStartStr = previousStartDate.toISOString().split('T')[0];
+
+    // Previous period: [previousStart, cutoff)
+    const prevWhereClause = ' WHERE date(timestamp) >= ? AND date(timestamp) < ?';
+    previousStartParams.push(previousStartStr, cutoffStr);
+
+    const prevResult = await db.prepare(
+      `SELECT COUNT(*) as count FROM events${prevWhereClause}`
+    ).bind(...previousStartParams).first<{ count: number }>();
+
+    previousTotalEvents = prevResult?.count || 0;
   }
 
   const totalEvents = await db.prepare(
@@ -30,6 +48,7 @@ export async function getOverview(db: D1Database, days: number = 0) {
 
   return {
     total_events: totalEvents?.count || 0,
+    previous_total_events: previousTotalEvents,
     total_users: totalUsers?.count || 0,
     apps: appsList.results || [],
     top_events: topEvents.results || []

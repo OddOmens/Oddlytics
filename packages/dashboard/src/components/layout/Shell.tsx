@@ -18,11 +18,9 @@ import {
 import Link from 'next/link';
 
 export function Sidebar() {
-    const [expanded, setExpanded] = useState(false);
-
     return (
         <aside
-            className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex flex-col transition-all duration-300 z-50 ${expanded ? 'w-64' : 'w-20'}`}
+            className="fixed left-0 top-0 h-full bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex flex-col z-50 w-64"
         >
             <div className="flex flex-col items-center py-8 h-full relative">
                 {/* Logo */}
@@ -31,19 +29,12 @@ export function Sidebar() {
                 </div>
 
                 <nav className="flex flex-col gap-4 w-full px-4">
-                    <SidebarItem href="/" icon={LayoutDashboard} label="Overview" expanded={expanded} />
-                    <SidebarItem href="/users" icon={Users} label="Users" expanded={expanded} />
+                    <SidebarItem href="/" icon={LayoutDashboard} label="Overview" />
+                    <SidebarItem href="/users" icon={Users} label="Users" />
                 </nav>
 
                 <div className="mt-auto flex flex-col gap-4 w-full px-4 pb-4">
-                    <SidebarItem href="/settings" icon={Settings} label="Settings" expanded={expanded} />
-                    {/* Expand Toggle */}
-                    <button
-                        onClick={() => setExpanded(!expanded)}
-                        className="p-3 text-gray-400 hover:text-black hover:bg-gray-50 rounded-xl transition-colors flex items-center justify-center w-full"
-                    >
-                        {expanded ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-                    </button>
+                    <SidebarItem href="/settings" icon={Settings} label="Settings" />
                 </div>
             </div>
         </aside>
@@ -54,25 +45,20 @@ function SidebarItem({
     href,
     icon: Icon,
     label,
-    expanded
 }: {
     href: string;
     icon: any;
     label: string;
-    expanded: boolean;
 }) {
     return (
         <Link
             href={href}
-            className={`flex items-center gap-4 p-3 rounded-xl transition-colors whitespace-nowrap overflow-hidden ${expanded ? 'justify-start' : 'justify-center'
-                } hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white`}
+            className="flex items-center gap-4 p-3 rounded-xl transition-colors whitespace-nowrap overflow-hidden justify-start hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white"
         >
             <Icon size={20} className="shrink-0" />
-            {expanded && (
-                <span className="font-medium animate-in fade-in slide-in-from-left-2 duration-200">
-                    {label}
-                </span>
-            )}
+            <span className="font-medium">
+                {label}
+            </span>
         </Link>
     );
 }

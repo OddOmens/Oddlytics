@@ -69,15 +69,32 @@ export function Overview({ data }: OverviewProps) {
             {/* Main Stats Card (Black variant like reference) */}
             <div className="col-span-12 md:col-span-6 lg:col-span-4">
                 <div className="h-full">
-                    <StatsCard
-                        title="Total Events"
-                        value={data.total_events}
-                        description="Lifetime events captured"
-                        variant="black"
-                        trend={{ value: 12.5, isPositive: true }}
-                        icon={<Activity size={20} className="text-white" />}
-                        className="h-full"
-                    />
+                    {(() => {
+                        let trendValue = 0;
+                        let isPositive = true;
+
+                        if (data.previous_total_events && data.previous_total_events > 0) {
+                            const diff = data.total_events - data.previous_total_events;
+                            trendValue = Math.round((diff / data.previous_total_events) * 100);
+                            isPositive = diff >= 0;
+                        } else if (data.total_events > 0 && (!data.previous_total_events || data.previous_total_events === 0)) {
+                            // If we have events now but none before, that's technically 100% growth or infinite
+                            trendValue = 100;
+                            isPositive = true;
+                        }
+
+                        return (
+                            <StatsCard
+                                title="Total Events"
+                                value={data.total_events}
+                                description="Lifetime events captured"
+                                variant="black"
+                                trend={data.previous_total_events !== undefined ? { value: Math.abs(trendValue), isPositive } : undefined}
+                                icon={<Activity size={20} className="text-white" />}
+                                className="h-full"
+                            />
+                        );
+                    })()}
                 </div>
             </div>
 

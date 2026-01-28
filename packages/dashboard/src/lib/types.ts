@@ -14,6 +14,7 @@ export interface TopEvent {
 
 export interface Overview {
     total_events: number;
+    previous_total_events?: number;
     total_users?: number;
     apps: App[];
     top_events: TopEvent[];
