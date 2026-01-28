@@ -10,7 +10,9 @@ actor EventBatcher {
     init(configuration: Configuration) {
         self.configuration = configuration
         self.session = URLSession.shared
-        startTimer()
+        Task {
+            await startTimer()
+        }
     }
 
     /// Add event to queue
@@ -58,21 +60,46 @@ actor EventBatcher {
             let (data, response) = try await session.data(for: request)
 
             if let httpResponse = response as? HTTPURLResponse {
-                if configuration.debugMode {
-                    print("[Oddlytics] Sent \(events.count) events, status: \(httpResponse.statusCode)")
+                // Success
+                if (200...299).contains(httpResponse.statusCode) {
+                     if configuration.debugMode {
+                        print("[Oddlytics] Sent \(events.count) events, status: \(httpResponse.statusCode)")
+                    }
+                    return
+                }
+                
+                // Client Error - 4xx (except 429) -> Drop events
+                if (400...499).contains(httpResponse.statusCode) && httpResponse.statusCode != 429 {
+                    if configuration.debugMode {
+                        print("[Oddlytics] Dropping \(events.count) events due to client error: \(httpResponse.statusCode)")
+                    }
+                    return
                 }
 
-                if httpResponse.statusCode != 200 {
+                // Server Error - Log it but maybe retry only on 5xx
+                if configuration.debugMode {
+                    print("[Oddlytics] Server returned status: \(httpResponse.statusCode)")
                     if let errorMessage = String(data: data, encoding: .utf8) {
-                        print("[Oddlytics] Error: \(errorMessage)")
+                        print("[Oddlytics] Response: \(errorMessage)")
                     }
                 }
             }
         } catch {
-            if configuration.debugMode {
+             if configuration.debugMode {
                 print("[Oddlytics] Network error: \(error.localizedDescription)")
             }
-            // TODO: Save to local storage for retry
+        }
+        
+        // Failure: Re-queue events for next batch (simple retry)
+        // We prepend them back to the queue so they aren't lost, 
+        // but we need to guard against infinite loops/overflow
+        if queue.count < 1000 { // Safety limit
+            queue.insert(contentsOf: events, at: 0)
+             if configuration.debugMode {
+                print("[Oddlytics] Re-queued \(events.count) events due to failure")
+            }
+        } else {
+             print("[Oddlytics] Dropped \(events.count) events due to queue limit")
         }
     }
 
