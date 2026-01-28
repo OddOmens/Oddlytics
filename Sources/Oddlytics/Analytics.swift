@@ -55,6 +55,9 @@ public enum Analytics {
             print("[Oddlytics] Configured with endpoint: \(endpoint)")
             print("[Oddlytics] Session ID: \(sessionId)")
             print("[Oddlytics] User ID: \(userId)")
+            if let deviceId = deviceId {
+                print("[Oddlytics] Device ID (IDFV): \(deviceId)")
+            }
         }
     }
 
