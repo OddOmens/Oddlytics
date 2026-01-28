@@ -21,8 +21,13 @@ export async function getOverview(db: D1Database) {
 }
 
 const isValidDate = (dateStr: string): boolean => {
-  const date = new Date(dateStr);
-  return !isNaN(date.getTime()) && dateStr.match(/^\d{4}-\d{2}-\d{2}/) !== null;
+  // Check format first with strict regex (must match entire string)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return false;
+  }
+  // Then validate it's a real date
+  const date = new Date(dateStr + 'T00:00:00Z');
+  return !isNaN(date.getTime());
 };
 
 export async function getEventStats(
@@ -78,16 +83,20 @@ export async function getTimeline(
     throw new Error('Invalid days parameter. Must be between 1 and 365');
   }
 
-  // Use parameterized query for days to prevent SQL injection
+  // Calculate cutoff date in JavaScript to avoid SQL injection
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+  const cutoffStr = cutoffDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+
   let query = `
     SELECT
       DATE(timestamp) as date,
       COUNT(*) as count
     FROM events
-    WHERE timestamp >= datetime('now', '-' || ? || ' days')
+    WHERE date(timestamp) >= ?
   `;
 
-  const params: any[] = [days.toString()];
+  const params: any[] = [cutoffStr];
 
   if (appId) {
     query += ' AND app_id = ?';
