@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment
+.env
+.env.local
+.dev.vars
+*.env
+
+# Build outputs
+dist/
+build/
+.next/
+.wrangler/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Swift
+.build/
+.swiftpm/
+*.xcodeproj
+*.xcworkspace
+
+# Logs
+*.log
+npm-debug.log*
