@@ -62,7 +62,7 @@ export default function UsersPage() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {users.map((user) => (
-                        <Link key={user.user_id} href={`/users/${user.user_id}`}>
+                        <Link key={user.user_id} href={`/users/detail?id=${user.user_id}`}>
                             <div className="group p-6 bg-white rounded-3xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all cursor-pointer h-full">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="p-3 bg-gray-50 rounded-2xl group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">

@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { UserDetail, ActivityEvent } from '@/lib/types';
 import { Header } from '@/components/layout/Shell';
-import { useParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
     Calendar,
     Activity,
@@ -13,9 +14,12 @@ import {
     Filter,
     ChevronDown
 } from 'lucide-react';
+import { useSettings } from '@/lib/settings';
 
-export default function UserDetailsPage() {
-    const { userId } = useParams();
+function UserDetailsContent() {
+    const { formatEventName } = useSettings();
+    const searchParams = useSearchParams();
+    const userId = searchParams.get('id');
     const [user, setUser] = useState<UserDetail | null>(null);
     const [activity, setActivity] = useState<ActivityEvent[]>([]);
     const [loading, setLoading] = useState(true);
@@ -106,8 +110,8 @@ export default function UserDetailsPage() {
                             key={app.app_id}
                             onClick={() => setSelectedApp(selectedApp === app.app_id ? '' : app.app_id)}
                             className={`p-4 rounded-2xl border transition-all cursor-pointer ${selectedApp === app.app_id
-                                    ? 'bg-black text-white border-black'
-                                    : 'bg-white border-gray-100 hover:border-gray-200'
+                                ? 'bg-black text-white border-black'
+                                : 'bg-white border-gray-100 hover:border-gray-200'
                                 }`}
                         >
                             <div className="flex justify-between items-center mb-2">
@@ -175,6 +179,23 @@ export default function UserDetailsPage() {
     );
 }
 
+export default function UserDetailsPage() {
+    return (
+        <Suspense fallback={
+            <main className="p-6 md:p-10 max-w-7xl mx-auto">
+                <div className="h-8 w-48 bg-gray-100 rounded-xl mb-10 animate-pulse" />
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    {[...Array(4)].map((_, i) => (
+                        <div key={i} className="h-32 bg-gray-100 rounded-3xl animate-pulse" />
+                    ))}
+                </div>
+            </main>
+        }>
+            <UserDetailsContent />
+        </Suspense>
+    );
+}
+
 function StatCard({ label, value, icon: Icon }: { label: string, value: string, icon: any }) {
     return (
         <div className="bg-white p-5 rounded-3xl border border-gray-100">
@@ -185,11 +206,4 @@ function StatCard({ label, value, icon: Icon }: { label: string, value: string, 
             <div className="text-2xl font-semibold">{value}</div>
         </div>
     );
-}
-
-function formatEventName(name: string) {
-    return name
-        .split(/[_\s-]/)
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(' ');
 }

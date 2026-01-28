@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getOverview } from '@/lib/api';
+import { api } from '@/lib/api';
 import { Overview } from '@/components/Overview';
 import { Header } from '@/components/layout/Shell';
 import type { Overview as OverviewType } from '@/lib/types';
@@ -12,7 +12,7 @@ export default function Home() {
     const [error, setError] = useState(false);
 
     useEffect(() => {
-        getOverview()
+        api.getOverview()
             .then(setData)
             .catch((err) => {
                 console.error('Failed to load data:', err);
