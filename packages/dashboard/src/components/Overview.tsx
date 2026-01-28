@@ -6,22 +6,34 @@ import type { Overview } from '@/lib/types';
 import { Smartphone, Activity, Users, Globe, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useSettings } from '@/lib/settings';
+import { useAliases } from '@/lib/alias';
 
 interface OverviewProps {
     data: Overview;
 }
 
 export function Overview({ data }: OverviewProps) {
-    const { formatEventName } = useSettings();
-    const totalApps = data.apps.length;
-    const totalSessions = data.apps.reduce((sum, app) => sum + app.total_sessions, 0);
+    const { apps, top_events, total_events, total_users } = data;
+    const { getAlias } = useAliases();
+    const { prettyEventNames, formatEventName } = useSettings();
 
-    const topEventsData = data.top_events.map(event => ({
-        name: formatEventName(event.event_name),
+    const getDisplayName = (eventName: string, appId?: string) => {
+        if (appId) {
+            const alias = getAlias(appId, eventName);
+            if (alias) return alias;
+        }
+        return prettyEventNames ? formatEventName(eventName) : eventName;
+    };
+
+    const totalApps = apps.length;
+    const totalSessions = apps.reduce((sum, app) => sum + app.total_sessions, 0);
+
+    const topEventsData = top_events.map(event => ({
+        name: getDisplayName(event.event_name),
         value: event.count,
     }));
 
-    const appsData = data.apps.map(app => ({
+    const appsData = apps.map(app => ({
         name: app.app_id,
         value: app.total_events,
     }));
@@ -118,10 +130,10 @@ export function Overview({ data }: OverviewProps) {
                 />
                 <div className="mt-6 space-y-2">
                     {topEventsData.slice(0, 3).map((e, i) => (
-                        <div key={e.name} className="flex justify-between text-sm">
+                        <div key={i} className="flex justify-between text-sm">
                             <div className="flex items-center gap-2">
                                 <div className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-orange-500' : 'bg-gray-300'}`} />
-                                <span className="text-gray-600">{e.name}</span>
+                                <span className="text-gray-600 truncate max-w-[150px]" title={e.name}>{e.name}</span>
                             </div>
                             <span className="font-medium">{e.value}</span>
                         </div>

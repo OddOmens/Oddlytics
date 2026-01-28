@@ -34,3 +34,11 @@ SELECT
   COUNT(DISTINCT app_id) as app_count
 FROM events
 GROUP BY event_name;
+
+-- Event Aliases: Custom display names for events per app
+CREATE TABLE event_aliases (
+  app_id TEXT NOT NULL,
+  event_name TEXT NOT NULL,
+  alias TEXT NOT NULL,
+  PRIMARY KEY (app_id, event_name)
+);

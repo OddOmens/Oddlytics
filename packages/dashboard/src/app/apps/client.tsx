@@ -1,26 +1,34 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getEventStats, getTimeline } from '@/lib/api';
+import { api } from '@/lib/api';
 import { Header } from '@/components/layout/Shell';
 import { StatsCard } from '@/components/StatsCard';
 import { AreaChart, BarList } from '@tremor/react';
 import { Activity, Clock, Calendar } from 'lucide-react';
 import type { EventStat, TimelinePoint } from '@/lib/types';
 import { useSettings } from '@/lib/settings';
+import { useAliases } from '@/lib/alias';
+import { Pencil, X, Check } from 'lucide-react';
+import { Dialog, DialogPanel, Title, Text } from '@tremor/react';
 
 export function AppDashboard({ appId }: { appId: string }) {
     const { formatEventName } = useSettings();
+    const { getAlias, saveAlias } = useAliases();
     const [events, setEvents] = useState<EventStat[]>([]);
     const [timeline, setTimeline] = useState<TimelinePoint[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Alias Editing State
+    const [editingEvent, setEditingEvent] = useState<{ original: string, current: string } | null>(null);
+    const [isSavingAlias, setIsSavingAlias] = useState(false);
+
     useEffect(() => {
         setLoading(true);
         Promise.all([
-            getEventStats({ appId }),
+            api.getEventStats({ appId }),
             // Default to 14 days for chart
-            getTimeline({ appId, days: 14 })
+            api.getTimeline({ appId, days: 14 })
         ]).then(([eventsData, timelineData]) => {
             setEvents(eventsData);
             setTimeline(timelineData);
@@ -28,6 +36,20 @@ export function AppDashboard({ appId }: { appId: string }) {
             console.error("Failed to fetch app data", err);
         }).finally(() => setLoading(false));
     }, [appId]);
+
+    const getDisplayName = (eventName: string) => {
+        const alias = getAlias(appId, eventName);
+        if (alias) return alias;
+        return formatEventName(eventName);
+    };
+
+    const handleSaveAlias = async () => {
+        if (!editingEvent) return;
+        setIsSavingAlias(true);
+        await saveAlias(appId, editingEvent.original, editingEvent.current);
+        setIsSavingAlias(false);
+        setEditingEvent(null);
+    };
 
     const totalEvents = events.reduce((sum, e) => sum + e.count, 0);
 
@@ -57,7 +79,7 @@ export function AppDashboard({ appId }: { appId: string }) {
                 <div className="col-span-12 md:col-span-4">
                     <StatsCard
                         title="Top Event"
-                        value={events[0] ? formatEventName(events[0].event_name) : '-'}
+                        value={events[0] ? getDisplayName(events[0].event_name) : '-'}
                         icon={<Clock size={20} />}
                         description={events[0] ? `${events[0].count} times` : 'No data'}
                     />
@@ -93,14 +115,80 @@ export function AppDashboard({ appId }: { appId: string }) {
                         <h3 className="font-bold text-lg">Top Events</h3>
                         <span className="text-xs text-gray-400">All time</span>
                     </div>
-                    <BarList
-                        data={events.map(e => ({ name: formatEventName(e.event_name), value: e.count }))}
-                        className="mt-2"
-                        showAnimation={true}
-                        color="orange"
-                    />
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="font-bold text-lg">Top Events</h3>
+                        <span className="text-xs text-gray-400">All time</span>
+                    </div>
+
+                    <div className="space-y-4">
+                        {events.map((e) => {
+                            const maxVal = events[0]?.count || 1;
+                            const percentage = Math.round((e.count / maxVal) * 100);
+                            const displayName = getDisplayName(e.event_name);
+
+                            return (
+                                <div key={e.event_name} className="group">
+                                    <div className="flex justify-between text-sm mb-1.5 items-center">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-medium text-gray-700">{displayName}</span>
+                                            <button
+                                                onClick={() => setEditingEvent({ original: e.event_name, current: displayName })}
+                                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded-md text-gray-400 hover:text-primary transition-all scale-90 hover:scale-100"
+                                                title="Rename event"
+                                            >
+                                                <Pencil size={12} />
+                                            </button>
+                                        </div>
+                                        <span className="text-gray-500 font-mono text-xs">{e.count.toLocaleString()}</span>
+                                    </div>
+                                    <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-orange-500 rounded-full transition-all duration-500 ease-out"
+                                            style={{ width: `${percentage}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
+
+            {/* Edit Alias Modal */}
+            <Dialog open={!!editingEvent} onClose={() => setEditingEvent(null)} static={true}>
+                <DialogPanel className="max-w-sm">
+                    <Title>Rename Event</Title>
+                    <Text className="mb-4">
+                        Set a custom display name for this event.
+                        Original: <span className="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded">{editingEvent?.original}</span>
+                    </Text>
+
+                    <input
+                        type="text"
+                        value={editingEvent?.current || ''}
+                        onChange={(e) => setEditingEvent(prev => prev ? { ...prev, current: e.target.value } : null)}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xl mb-6 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        placeholder="Enter display name..."
+                        autoFocus
+                    />
+
+                    <div className="flex justify-end gap-2">
+                        <button
+                            onClick={() => setEditingEvent(null)}
+                            className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSaveAlias}
+                            disabled={isSavingAlias}
+                            className="px-4 py-2 text-sm font-medium bg-black text-white rounded-xl hover:bg-gray-900 transition-colors disabled:opacity-50 flex items-center gap-2"
+                        >
+                            {isSavingAlias ? 'Saving...' : 'Save Name'}
+                        </button>
+                    </div>
+                </DialogPanel>
+            </Dialog>
         </div>
     );
 }

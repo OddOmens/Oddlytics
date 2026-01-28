@@ -28,3 +28,38 @@ export interface TimelinePoint {
     date: string;
     count: number;
 }
+
+export interface User {
+    user_id: string;
+    total_events: number;
+    total_sessions: number;
+    first_seen: string;
+    last_seen: string;
+    last_app?: string;
+}
+
+export interface UserDetail {
+    user_id: string;
+    stats: {
+        total_events: number;
+        total_sessions: number;
+        total_apps: number;
+        first_seen: string;
+        last_seen: string;
+    };
+    apps: {
+        app_id: string;
+        event_count: number;
+        last_used: string;
+    }[];
+}
+
+export interface ActivityEvent {
+    id: number;
+    event_name: string;
+    app_id: string;
+    timestamp: string;
+    platform: string;
+    session_id: string;
+    metadata?: any;
+}
