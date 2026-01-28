@@ -5,6 +5,8 @@ import type { Env, TrackEventRequest, TrackBatchRequest } from './types';
 const app = new Hono<{ Bindings: Env }>();
 
 // Enable CORS for SwiftUI apps
+// Note: origin '*' allows any domain. For production, consider restricting to specific domains.
+// Native iOS apps typically don't send Origin headers, so '*' is appropriate for mobile SDKs.
 app.use('/*', cors({
   origin: '*',
   allowMethods: ['POST', 'GET', 'OPTIONS'],
@@ -31,18 +33,64 @@ app.post('/track', async (c) => {
   try {
     const body = await c.req.json();
 
-    // Check if batch or single event
+    // Validate batch structure
     const isBatch = 'events' in body;
+    if (isBatch && !Array.isArray(body.events)) {
+      return c.json({ error: 'events must be an array' }, 400);
+    }
+
     const events: TrackEventRequest[] = isBatch
-      ? (body as TrackBatchRequest).events
-      : [body as TrackEventRequest];
+      ? body.events
+      : [body];
+
+    // Validate non-empty
+    if (!events || events.length === 0) {
+      return c.json({ error: 'No events provided' }, 400);
+    }
+
+    // Validate batch size
+    const MAX_BATCH_SIZE = 100;
+    if (events.length > MAX_BATCH_SIZE) {
+      return c.json({
+        error: `Batch too large. Maximum: ${MAX_BATCH_SIZE} events`
+      }, 400);
+    }
 
     // Validate events
     for (const event of events) {
-      if (!event.event || !event.app_id || !event.session_id) {
-        return c.json({
-          error: 'Missing required fields: event, app_id, session_id'
-        }, 400);
+      // Check required fields are non-empty strings
+      if (!event.event || typeof event.event !== 'string' || event.event.trim().length === 0) {
+        return c.json({ error: 'event must be a non-empty string' }, 400);
+      }
+      if (!event.app_id || typeof event.app_id !== 'string' || event.app_id.trim().length === 0) {
+        return c.json({ error: 'app_id must be a non-empty string' }, 400);
+      }
+      if (!event.session_id || typeof event.session_id !== 'string' || event.session_id.trim().length === 0) {
+        return c.json({ error: 'session_id must be a non-empty string' }, 400);
+      }
+
+      // Validate optional platform field
+      if (event.platform && typeof event.platform !== 'string') {
+        return c.json({ error: 'platform must be a string' }, 400);
+      }
+
+      // Validate string lengths
+      if (event.event.length > 255) {
+        return c.json({ error: 'event name too long (max 255 chars)' }, 400);
+      }
+      if (event.app_id.length > 255) {
+        return c.json({ error: 'app_id too long (max 255 chars)' }, 400);
+      }
+
+      // Validate metadata size
+      if (event.metadata) {
+        const metadataStr = JSON.stringify(event.metadata);
+        const maxSize = 10 * 1024; // 10KB limit
+        if (metadataStr.length > maxSize) {
+          return c.json({
+            error: `Metadata too large. Maximum size: ${maxSize} bytes`
+          }, 400);
+        }
       }
     }
 
@@ -69,9 +117,13 @@ app.post('/track', async (c) => {
 
   } catch (error) {
     console.error('Track error:', error);
+
+    // Only include details in development
+    const isDev = c.env.ENVIRONMENT !== 'production';
+
     return c.json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      ...(isDev && { message: error instanceof Error ? error.message : 'Unknown error' })
     }, 500);
   }
 });
