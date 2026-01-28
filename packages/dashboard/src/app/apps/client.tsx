@@ -14,6 +14,8 @@ import { Dialog, DialogPanel, Title, Text, Card } from '@tremor/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { toast } from 'sonner';
 
 export function AppDashboard({ appId }: { appId: string }) {
     const { formatEventName } = useSettings();
@@ -72,7 +74,7 @@ export function AppDashboard({ appId }: { appId: string }) {
             router.push('/');
         } catch (error) {
             console.error('Failed to delete app:', error);
-            alert('Failed to delete app data. Please try again.');
+            toast.error('Failed to delete app data. Please try again.');
             setIsDeleting(false);
         }
     };
@@ -174,13 +176,14 @@ export function AppDashboard({ appId }: { appId: string }) {
                                     <div className="flex justify-between text-sm mb-1.5 items-center">
                                         <div className="flex items-center gap-2">
                                             <span className="font-medium text-gray-700">{displayName}</span>
-                                            <button
-                                                onClick={() => setEditingEvent({ original: e.event_name, current: displayName })}
-                                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded-md text-gray-400 hover:text-primary transition-all scale-90 hover:scale-100"
-                                                title="Rename event"
-                                            >
-                                                <Pencil size={12} />
-                                            </button>
+                                            <Tooltip content="Rename event">
+                                                <button
+                                                    onClick={() => setEditingEvent({ original: e.event_name, current: displayName })}
+                                                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded-md text-gray-400 hover:text-primary transition-all scale-90 hover:scale-100"
+                                                >
+                                                    <Pencil size={12} />
+                                                </button>
+                                            </Tooltip>
                                         </div>
                                         <span className="text-gray-500 font-mono text-xs">{e.count.toLocaleString()}</span>
                                     </div>
@@ -218,9 +221,11 @@ export function AppDashboard({ appId }: { appId: string }) {
                                     <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 mx-auto mb-3">
                                         <Users size={20} />
                                     </div>
-                                    <div className="font-mono text-[10px] text-gray-500 truncate mb-1" title={user.user_id}>
-                                        {user.user_id}
-                                    </div>
+                                    <Tooltip content={user.user_id}>
+                                        <div className="font-mono text-[10px] text-gray-500 truncate mb-1">
+                                            {user.user_id}
+                                        </div>
+                                    </Tooltip>
                                     <div className="text-sm font-semibold text-gray-900">
                                         {user.total_events} events
                                     </div>

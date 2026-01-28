@@ -7,6 +7,7 @@ import { Smartphone, Activity, Users, Globe, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useSettings } from '@/lib/settings';
 import { useAliases } from '@/lib/alias';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface OverviewProps {
     data: Overview;
@@ -133,7 +134,9 @@ export function Overview({ data }: OverviewProps) {
                         <div key={i} className="flex justify-between text-sm">
                             <div className="flex items-center gap-2">
                                 <div className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
-                                <span className="text-gray-600 dark:text-gray-400 truncate max-w-[150px]" title={e.name}>{e.name}</span>
+                                <Tooltip content={e.name}>
+                                    <span className="text-gray-600 dark:text-gray-400 truncate max-w-[150px]">{e.name}</span>
+                                </Tooltip>
                             </div>
                             <span className="font-medium dark:text-gray-200">{e.value}</span>
                         </div>

@@ -1,6 +1,7 @@
 import './globals.css';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Providers } from './providers';
+import { Toaster } from 'sonner';
 
 export const metadata = {
     title: 'Oddlytics Dashboard',
@@ -19,6 +20,7 @@ export default function RootLayout({
                     <MainLayout>
                         {children}
                     </MainLayout>
+                    <Toaster richColors position="top-right" />
                 </Providers>
             </body>
         </html>

@@ -9,6 +9,7 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Search, ChevronLeft, ChevronRight, User as UserIcon, X } from 'lucide-react';
 import { Card } from '@tremor/react';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 function UsersPageContent() {
     const searchParams = useSearchParams();
@@ -86,9 +87,11 @@ function UsersPageContent() {
                                         {user.total_events} events
                                     </span>
                                 </div>
-                                <h3 className="font-mono text-sm mb-1 text-gray-900 dark:text-gray-100 truncate" title={user.user_id}>
-                                    {user.user_id}
-                                </h3>
+                                <Tooltip content={user.user_id}>
+                                    <h3 className="font-mono text-sm mb-1 text-gray-900 dark:text-gray-100 truncate">
+                                        {user.user_id}
+                                    </h3>
+                                </Tooltip>
                                 <p className="text-xs text-gray-400 dark:text-gray-500">
                                     Last seen {new Date(user.last_seen).toLocaleDateString()}
                                 </p>

@@ -11,8 +11,6 @@ import {
     Activity,
     Smartphone,
     Clock,
-    Filter,
-    ChevronDown,
     Search as SearchIcon,
     Code,
     Eye,
@@ -23,6 +21,9 @@ import {
 } from 'lucide-react';
 import { useSettings } from '@/lib/settings';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
+import { groupActivityEvents } from '@/lib/activity-utils';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { toast } from 'sonner';
 
 function UserDetailsContent() {
     const { formatEventName } = useSettings();
@@ -68,9 +69,10 @@ function UserDetailsContent() {
             await api.deleteEvent(deleteEventId);
             setActivity(activity.filter(e => e.id !== deleteEventId));
             setDeleteEventId(null);
+            toast.success('Event deleted successfully');
         } catch (error) {
             console.error('Failed to delete event:', error);
-            alert('Failed to delete event. Please try again.');
+            toast.error('Failed to delete event. Please try again.');
         } finally {
             setIsDeleting(false);
         }
@@ -81,10 +83,11 @@ function UserDetailsContent() {
         setIsDeleting(true);
         try {
             await api.deleteUser(userId);
+            toast.success('User data deleted successfully');
             router.push('/users');
         } catch (error) {
             console.error('Failed to delete user:', error);
-            alert('Failed to delete user. Please try again.');
+            toast.error('Failed to delete user. Please try again.');
             setIsDeleting(false);
         }
     }
@@ -125,13 +128,17 @@ function UserDetailsContent() {
                             <h1 className="font-mono text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 break-all">
                                 {user.user_id}
                             </h1>
-                            <button
-                                onClick={() => navigator.clipboard.writeText(user.user_id)}
-                                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded-lg transition-colors"
-                                title="Copy User ID"
-                            >
-                                <Copy size={16} />
-                            </button>
+                            <Tooltip content="Copy User ID">
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(user.user_id);
+                                        toast.success('User ID copied to clipboard');
+                                    }}
+                                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded-lg transition-colors"
+                                >
+                                    <Copy size={16} />
+                                </button>
+                            </Tooltip>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
@@ -232,30 +239,7 @@ function UserDetailsContent() {
                         ) : (
                             <div className="divide-y divide-gray-50 dark:divide-gray-700">
                                 {(() => {
-                                    // Group consecutive identical events
-                                    const groupedActivity: (ActivityEvent & { count?: number, groupStart?: string })[] = [];
-
-                                    activity.forEach((event, index) => {
-                                        const prev = groupedActivity[groupedActivity.length - 1];
-
-                                        // Check if similar to previous (actually next in chronological order since list is desc)
-                                        // But here we are iterating desc (newest first).
-                                        // So 'prev' is the newer one we just added.
-
-                                        if (prev &&
-                                            prev.event_name === event.event_name &&
-                                            prev.app_id === event.app_id &&
-                                            // Check timestamps within reasonable window (e.g. 5 minutes)
-                                            (new Date(prev.timestamp).getTime() - new Date(event.timestamp).getTime() < 300000) &&
-                                            // Check metadata equality
-                                            JSON.stringify(prev.metadata || {}) === JSON.stringify(event.metadata || {})
-                                        ) {
-                                            prev.count = (prev.count || 1) + 1;
-                                            prev.groupStart = event.timestamp; // Update start time of group
-                                        } else {
-                                            groupedActivity.push({ ...event, count: 1 });
-                                        }
-                                    });
+                                    const groupedActivity = groupActivityEvents(activity);
 
                                     return groupedActivity.map((event) => (
                                         <div key={event.id} className="group p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors rounded-xl">
@@ -269,13 +253,14 @@ function UserDetailsContent() {
                                                             {event.count}x
                                                         </span>
                                                     )}
-                                                    <button
-                                                        onClick={() => setDeleteEventId(event.id)}
-                                                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-all scale-90 hover:scale-100"
-                                                        title="Delete event"
-                                                    >
-                                                        <Trash2 size={12} />
-                                                    </button>
+                                                    <Tooltip content="Delete event">
+                                                        <button
+                                                            onClick={() => setDeleteEventId(event.id)}
+                                                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-all scale-90 hover:scale-100"
+                                                        >
+                                                            <Trash2 size={12} />
+                                                        </button>
+                                                    </Tooltip>
                                                 </div>
                                                 <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
                                                     {new Date(event.timestamp).toLocaleString()}
@@ -367,6 +352,7 @@ function MetadataViewer({ data }: { data: any }) {
     const copyToClipboard = () => {
         navigator.clipboard.writeText(JSON.stringify(data, null, 2));
         setCopied(true);
+        toast.success('JSON copied to clipboard');
         setTimeout(() => setCopied(false), 2000);
     };
 
@@ -447,13 +433,14 @@ function MetadataViewer({ data }: { data: any }) {
                     />
                 </div>
                 <div className="flex items-center gap-1">
-                    <button
-                        onClick={copyToClipboard}
-                        className="p-1.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                        title="Copy Raw JSON"
-                    >
-                        {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
-                    </button>
+                    <Tooltip content="Copy Raw JSON">
+                        <button
+                            onClick={copyToClipboard}
+                            className="p-1.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                        >
+                            {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+                        </button>
+                    </Tooltip>
                     <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
                     <button
                         onClick={() => setMode('visual')}
