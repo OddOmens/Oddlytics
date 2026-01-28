@@ -1,6 +1,10 @@
-import { Card, Title, BarList, Grid } from '@tremor/react';
+'use client';
+
+import { BarChart, DonutChart } from '@tremor/react';
 import { StatsCard } from './StatsCard';
 import type { Overview } from '@/lib/types';
+import { Smartphone, Activity, Users, Globe, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 interface OverviewProps {
     data: Overview;
@@ -21,42 +25,122 @@ export function Overview({ data }: OverviewProps) {
     }));
 
     return (
-        <div className="space-y-6">
-            <Grid numItemsSm={2} numItemsLg={3} className="gap-6">
-                <StatsCard
-                    title="Total Events"
-                    value={data.total_events}
-                    description="All time"
-                />
-                <StatsCard
-                    title="Apps Tracked"
-                    value={totalApps}
-                />
-                <StatsCard
-                    title="Total Sessions"
-                    value={totalSessions}
-                />
-            </Grid>
+        <div className="grid grid-cols-12 gap-6 auto-rows-[minmax(180px,auto)]">
 
-            <Grid numItemsSm={1} numItemsLg={2} className="gap-6">
-                <Card>
-                    <Title>Top Events</Title>
-                    <BarList
-                        data={topEventsData}
-                        className="mt-4"
-                        showAnimation
-                    />
-                </Card>
+            {/* Hero / Greeting Card - Spans full width or large chunk */}
+            <div className="col-span-12 lg:col-span-8 bg-white rounded-3xl p-8 shadow-soft flex flex-col justify-center relative overflow-hidden">
+                <div className="relative z-10">
+                    <h2 className="text-4xl font-bold mb-2">Hey, Welcome back! 👋</h2>
+                    <p className="text-gray-500 text-lg mb-6 max-w-md">
+                        Here's what's happening with your apps today. You have {data.total_events} new events tracked.
+                    </p>
+                    <div className="flex gap-4">
+                        <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold">
+                            {totalApps} Active Apps
+                        </div>
+                        <div className="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-sm font-semibold">
+                            {totalSessions} Sessions
+                        </div>
+                    </div>
+                </div>
+                {/* Abstract shape decoration */}
+                <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
+                <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+            </div>
 
-                <Card>
-                    <Title>Events by App</Title>
-                    <BarList
-                        data={appsData}
-                        className="mt-4"
-                        showAnimation
+            {/* Main Stats Card (Black variant like reference) */}
+            <div className="col-span-12 md:col-span-6 lg:col-span-4">
+                <div className="h-full">
+                    <StatsCard
+                        title="Total Events"
+                        value={data.total_events}
+                        description="Lifetime events captured"
+                        variant="black"
+                        trend={{ value: 12.5, isPositive: true }}
+                        icon={<Activity size={20} className="text-white" />}
+                        className="h-full"
                     />
-                </Card>
-            </Grid>
+                </div>
+            </div>
+
+            {/* App List / "Visa" Card style */}
+            <div className="col-span-12 md:col-span-6 lg:col-span-4 bg-white rounded-3xl p-6 shadow-soft flex flex-col">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="font-bold text-lg">Your Apps</h3>
+                    <span className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-500">{totalApps}</span>
+                </div>
+
+                <div className="flex-1 overflow-y-auto no-scrollbar space-y-3">
+                    {data.apps.map(app => (
+                        <Link key={app.app_id} href={`/apps?id=${encodeURIComponent(app.app_id)}`} className="block group">
+                            <div className="p-4 rounded-2xl border border-gray-100 hover:border-primary/30 hover:bg-primary/5 transition-all flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 group-hover:bg-white group-hover:text-primary transition-colors shadow-sm">
+                                        <Smartphone size={18} />
+                                    </div>
+                                    <div>
+                                        <div className="font-semibold text-sm">{app.app_id}</div>
+                                        <div className="text-xs text-gray-400">{app.total_events} events</div>
+                                    </div>
+                                </div>
+                                <ArrowRight size={16} className="text-gray-300 group-hover:text-primary transition-colors" />
+                            </div>
+                        </Link>
+                    ))}
+
+                    {data.apps.length === 0 && (
+                        <div className="text-center text-gray-400 py-8 text-sm">
+                            No apps connected yet.
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Charts Section */}
+            <div className="col-span-12 md:col-span-6 lg:col-span-4 bg-white rounded-3xl p-6 shadow-soft">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-bold text-lg">Top Events</h3>
+                    <button className="text-xs text-gray-400 hover:text-black">View all</button>
+                </div>
+                <DonutChart
+                    className="mt-6 h-40"
+                    data={topEventsData}
+                    category="value"
+                    index="name"
+                    colors={["orange", "slate", "gray", "zinc"]}
+                    showAnimation={true}
+                    variant="pie"
+                />
+                <div className="mt-6 space-y-2">
+                    {topEventsData.slice(0, 3).map((e, i) => (
+                        <div key={e.name} className="flex justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-orange-500' : 'bg-gray-300'}`} />
+                                <span className="text-gray-600">{e.name}</span>
+                            </div>
+                            <span className="font-medium">{e.value}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="col-span-12 lg:col-span-4 bg-white rounded-3xl p-6 shadow-soft">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-bold text-lg">Activity</h3>
+                    <div className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">Weekly</div>
+                </div>
+                <BarChart
+                    className="mt-4 h-48"
+                    data={appsData}
+                    index="name"
+                    categories={["value"]}
+                    colors={["orange"]}
+                    yAxisWidth={0}
+                    showAnimation={true}
+                    showLegend={false}
+                />
+            </div>
+
         </div>
     );
 }

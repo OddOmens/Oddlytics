@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getOverview } from '@/lib/api';
 import { Overview } from '@/components/Overview';
+import { Header } from '@/components/layout/Shell';
 import type { Overview as OverviewType } from '@/lib/types';
 
 export default function Home() {
@@ -31,10 +32,8 @@ export default function Home() {
     if (error || !data) {
         return (
             <div>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
-                    Dashboard
-                </h2>
-                <p className="text-red-600">
+                <Header title="Overview" />
+                <p className="text-red-400 bg-red-50 p-4 rounded-xl inline-block">
                     Failed to load analytics data. Make sure the API is running.
                 </p>
             </div>
@@ -43,9 +42,7 @@ export default function Home() {
 
     return (
         <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
-                Dashboard
-            </h2>
+            <Header title="Overview" />
             <Overview data={data} />
         </div>
     );
