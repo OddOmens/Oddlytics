@@ -134,11 +134,7 @@ app.post('/track', async (c) => {
 
 // Stats endpoints - require authentication for consistency with /track endpoint
 app.get('/stats/overview', async (c) => {
-  // Authenticate
-  const apiKey = c.req.header('X-API-KEY');
-  if (!apiKey || apiKey !== c.env.AUTH_KEY) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
+
 
   try {
     const data = await getOverview(c.env.DB);
@@ -154,11 +150,7 @@ app.get('/stats/overview', async (c) => {
 });
 
 app.get('/stats/events', async (c) => {
-  // Authenticate
-  const apiKey = c.req.header('X-API-KEY');
-  if (!apiKey || apiKey !== c.env.AUTH_KEY) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
+
 
   try {
     const appId = c.req.query('app_id');
@@ -183,11 +175,7 @@ app.get('/stats/events', async (c) => {
 });
 
 app.get('/stats/timeline', async (c) => {
-  // Authenticate
-  const apiKey = c.req.header('X-API-KEY');
-  if (!apiKey || apiKey !== c.env.AUTH_KEY) {
-    return c.json({ error: 'Unauthorized' }, 401);
-  }
+
 
   try {
     const appId = c.req.query('app_id');
