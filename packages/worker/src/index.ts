@@ -81,6 +81,9 @@ app.post('/track', async (c) => {
       if (event.app_id.length > 255) {
         return c.json({ error: 'app_id too long (max 255 chars)' }, 400);
       }
+      if (event.session_id.length > 255) {
+        return c.json({ error: 'session_id too long (max 255 chars)' }, 400);
+      }
 
       // Validate metadata size
       if (event.metadata) {
