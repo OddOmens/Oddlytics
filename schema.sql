@@ -6,7 +6,8 @@ CREATE TABLE events (
   timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
   platform TEXT DEFAULT 'iOS',
   metadata TEXT,  -- JSON string for flexible event data
-  session_id TEXT -- Random UUID per app launch
+  session_id TEXT, -- Random UUID per app launch
+  user_id TEXT     -- Persistent anonymous UUID
 );
 
 -- Indexes for fast queries

@@ -5,6 +5,10 @@ export async function getOverview(db: D1Database) {
     'SELECT COUNT(*) as count FROM events'
   ).first<{ count: number }>();
 
+  const totalUsers = await db.prepare(
+    'SELECT COUNT(DISTINCT user_id) as count FROM events'
+  ).first<{ count: number }>();
+
   const appsList = await db.prepare(
     'SELECT app_id, total_events, total_sessions, first_seen, last_seen FROM event_counts_by_app'
   ).all();
@@ -15,6 +19,7 @@ export async function getOverview(db: D1Database) {
 
   return {
     total_events: totalEvents?.count || 0,
+    total_users: totalUsers?.count || 0,
     apps: appsList.results || [],
     top_events: topEvents.results || []
   };

@@ -41,6 +41,9 @@ export function Overview({ data }: OverviewProps) {
                         <div className="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-sm font-semibold">
                             {totalSessions} Sessions
                         </div>
+                        <div className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full text-sm font-semibold">
+                            {data.total_users || 0} Users
+                        </div>
                     </div>
                 </div>
                 {/* Abstract shape decoration */}
@@ -141,6 +144,6 @@ export function Overview({ data }: OverviewProps) {
                 />
             </div>
 
-        </div>
+        </div >
     );
 }

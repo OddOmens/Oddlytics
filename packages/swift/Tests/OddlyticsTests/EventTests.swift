@@ -7,7 +7,8 @@ final class EventTests: XCTestCase {
             event: "test_event",
             appId: "TestApp",
             metadata: ["key": "value"],
-            sessionId: "session123"
+            sessionId: "session123",
+            userId: "user123"
         )
 
         XCTAssertEqual(event.event, "test_event")
@@ -15,6 +16,7 @@ final class EventTests: XCTestCase {
         XCTAssertEqual(event.platform, "iOS")
         XCTAssertEqual(event.metadata["key"], "value")
         XCTAssertEqual(event.session_id, "session123")
+        XCTAssertEqual(event.user_id, "user123")
     }
 
     func testEventToJSON() {
@@ -22,7 +24,8 @@ final class EventTests: XCTestCase {
             event: "test_event",
             appId: "TestApp",
             metadata: ["key": "value"],
-            sessionId: "session123"
+            sessionId: "session123",
+            userId: "user123"
         )
 
         let json = event.toJSON()
@@ -31,11 +34,12 @@ final class EventTests: XCTestCase {
         XCTAssertEqual(json["app_id"] as? String, "TestApp")
         XCTAssertEqual(json["platform"] as? String, "iOS")
         XCTAssertEqual(json["session_id"] as? String, "session123")
+        XCTAssertEqual(json["user_id"] as? String, "user123")
     }
 
     func testEventBatchToJSON() {
-        let event1 = Event(event: "event1", appId: "App", sessionId: "session1")
-        let event2 = Event(event: "event2", appId: "App", sessionId: "session1")
+        let event1 = Event(event: "event1", appId: "App", sessionId: "session1", userId: "user1")
+        let event2 = Event(event: "event2", appId: "App", sessionId: "session1", userId: "user1")
         let batch = EventBatch(events: [event1, event2])
 
         let json = batch.toJSON()

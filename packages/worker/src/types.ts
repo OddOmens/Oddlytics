@@ -10,6 +10,8 @@ export interface TrackEventRequest {
   platform?: string;
   metadata?: Record<string, any>;
   session_id: string;
+  user_id?: string;
+  timestamp?: number; // Unix timestamp
 }
 
 export interface TrackBatchRequest {

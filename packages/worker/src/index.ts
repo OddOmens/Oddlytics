@@ -99,17 +99,24 @@ app.post('/track', async (c) => {
     }
 
     // Insert events into D1
-    const statements = events.map(event =>
-      c.env.DB.prepare(
-        'INSERT INTO events (event_name, app_id, platform, metadata, session_id) VALUES (?, ?, ?, ?, ?)'
+    const statements = events.map(event => {
+      // Use provided timestamp or current time
+      const timestamp = event.timestamp
+        ? new Date(event.timestamp * 1000).toISOString().replace('T', ' ').replace('Z', '')
+        : new Date().toISOString().replace('T', ' ').replace('Z', '');
+
+      return c.env.DB.prepare(
+        'INSERT INTO events (event_name, app_id, platform, metadata, session_id, user_id, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)'
       ).bind(
         event.event,
         event.app_id,
         event.platform || 'iOS',
         JSON.stringify(event.metadata || {}),
-        event.session_id
-      )
-    );
+        event.session_id,
+        event.user_id || null,
+        timestamp
+      );
+    });
 
     // Batch insert
     await c.env.DB.batch(statements);

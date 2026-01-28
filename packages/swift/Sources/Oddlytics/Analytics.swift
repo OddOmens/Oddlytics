@@ -5,6 +5,18 @@ public enum Analytics {
     private static var batcher: EventBatcher?
     private static var configuration: Configuration?
     private static var sessionId: String = UUID().uuidString
+    
+    /// Persistent anonymous user ID
+    private static var userId: String {
+        get {
+            if let stored = UserDefaults.standard.string(forKey: "oddlytics_user_id") {
+                return stored
+            }
+            let newId = UUID().uuidString
+            UserDefaults.standard.set(newId, forKey: "oddlytics_user_id")
+            return newId
+        }
+    }
 
     /// Configure analytics (call once at app launch)
     public static func configure(
@@ -30,6 +42,7 @@ public enum Analytics {
         if config.debugMode {
             print("[Oddlytics] Configured with endpoint: \(endpoint)")
             print("[Oddlytics] Session ID: \(sessionId)")
+            print("[Oddlytics] User ID: \(userId)")
         }
     }
 
@@ -44,7 +57,8 @@ public enum Analytics {
             event: eventName,
             appId: config.appId,
             metadata: metadata,
-            sessionId: sessionId
+            sessionId: sessionId,
+            userId: userId
         )
 
         Task {
