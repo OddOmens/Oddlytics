@@ -156,7 +156,7 @@ export function AppDashboard({ appId }: { appId: string }) {
 
             {/* Edit Alias Modal */}
             <Dialog open={!!editingEvent} onClose={() => setEditingEvent(null)} static={true}>
-                <DialogPanel className="max-w-sm">
+                <DialogPanel className="max-w-sm bg-white">
                     <Title>Rename Event</Title>
                     <Text className="mb-4">
                         Set a custom display name for this event.
