@@ -45,7 +45,7 @@ export const api = {
     },
 
     getAppStats: async (appId: string) => {
-        return fetchApi<any>(`/stats/app/${appId}`);
+        return fetchApi<any>(`/stats/app/${encodeURIComponent(appId)}`);
     },
 
     getUsers: async (limit = 50, offset = 0, search = '', appId?: string) => {

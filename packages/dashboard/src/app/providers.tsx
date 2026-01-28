@@ -6,7 +6,7 @@ import { AliasProvider } from '@/lib/alias';
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" forcedTheme="light" enableSystem={false} disableTransitionOnChange>
             <SettingsProvider>
                 <AliasProvider>
                     {children}

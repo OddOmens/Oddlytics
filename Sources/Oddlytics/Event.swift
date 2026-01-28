@@ -8,6 +8,7 @@ struct Event: Codable {
     let metadata: [String: String]
     let session_id: String
     let user_id: String
+    let device_id: String?
     let timestamp: TimeInterval
 
     init(
@@ -15,7 +16,8 @@ struct Event: Codable {
         appId: String,
         metadata: [String: String] = [:],
         sessionId: String,
-        userId: String
+        userId: String,
+        deviceId: String? = nil
     ) {
         self.event = event
         self.app_id = appId
@@ -23,12 +25,13 @@ struct Event: Codable {
         self.metadata = metadata
         self.session_id = sessionId
         self.user_id = userId
+        self.device_id = deviceId
         self.timestamp = Date().timeIntervalSince1970
     }
 
     /// Convert to JSON dictionary for API
     func toJSON() -> [String: Any] {
-        return [
+        var json: [String: Any] = [
             "event": event,
             "app_id": app_id,
             "platform": platform,
@@ -37,6 +40,12 @@ struct Event: Codable {
             "user_id": user_id,
             "timestamp": timestamp
         ]
+        
+        if let device_id = device_id {
+            json["device_id"] = device_id
+        }
+        
+        return json
     }
 }
 

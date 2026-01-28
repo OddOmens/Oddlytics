@@ -3,8 +3,7 @@
 import { Header } from '@/components/layout/Shell';
 import { useSettings } from '@/lib/settings';
 import clsx from 'clsx';
-import { useTheme } from 'next-themes';
-import { Settings as SettingsIcon, Type, Clock, Layout, Sun, Moon } from 'lucide-react';
+import { Settings as SettingsIcon, Type, Clock, Layout } from 'lucide-react';
 
 export default function SettingsPage() {
     const {
@@ -12,7 +11,6 @@ export default function SettingsPage() {
         defaultTimeRange, setDefaultTimeRange,
         compactMode, setCompactMode
     } = useSettings();
-    const { theme, setTheme } = useTheme();
 
     return (
         <div>
@@ -113,31 +111,6 @@ export default function SettingsPage() {
                         </div>
                     </div>
 
-                    {/* Theme Preference */}
-                    <div className="flex items-center justify-between pb-6 border-b border-gray-100 dark:border-gray-700 last:border-0">
-                        <div className="flex items-start gap-4">
-                            <div className="p-2 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
-                                <Sun size={20} className="dark:hidden" />
-                                <Moon size={20} className="hidden dark:block" />
-                            </div>
-                            <div>
-                                <h4 className="font-semibold text-gray-900 dark:text-gray-100">Theme</h4>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-sm">
-                                    Choose between light, dark, or system appearance.
-                                </p>
-                            </div>
-                        </div>
-
-                        <select
-                            value={theme}
-                            onChange={(e) => setTheme(e.target.value)}
-                            className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block p-2.5"
-                        >
-                            <option value="system">System</option>
-                            <option value="light">Light</option>
-                            <option value="dark">Dark</option>
-                        </select>
-                    </div>
 
                     <div className="pt-2 text-xs text-center text-gray-400">
                         Oddlytics Dashboard v1.0.0

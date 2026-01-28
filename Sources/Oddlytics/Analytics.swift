@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Main analytics interface
 public enum Analytics {
@@ -16,6 +19,15 @@ public enum Analytics {
             UserDefaults.standard.set(newId, forKey: "oddlytics_user_id")
             return newId
         }
+    }
+
+    /// Device ID (IDFV on iOS)
+    private static var deviceId: String? {
+        #if os(iOS)
+        return UIDevice.current.identifierForVendor?.uuidString
+        #else
+        return nil
+        #endif
     }
 
     /// Configure analytics (call once at app launch)
@@ -58,7 +70,8 @@ public enum Analytics {
             appId: config.appId,
             metadata: metadata,
             sessionId: sessionId,
-            userId: userId
+            userId: userId,
+            deviceId: deviceId
         )
 
         Task {
