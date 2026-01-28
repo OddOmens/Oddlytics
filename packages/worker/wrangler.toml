@@ -1,0 +1,13 @@
+name = "oddlytics-worker"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "oddlytics-db"
+database_id = "YOUR_DATABASE_ID"  # Replace after creating D1 database
+
+# Environment variables (secrets set via CLI)
+[vars]
+ENVIRONMENT = "production"
