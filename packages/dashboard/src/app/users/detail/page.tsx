@@ -50,10 +50,10 @@ function UserDetailsContent() {
     if (loading && !user) {
         return (
             <main className="p-6 md:p-10 max-w-7xl mx-auto">
-                <div className="h-8 w-48 bg-gray-100 rounded-xl mb-10 animate-pulse" />
+                <div className="h-8 w-48 bg-gray-100 dark:bg-gray-800 rounded-xl mb-10 animate-pulse" />
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                     {[...Array(4)].map((_, i) => (
-                        <div key={i} className="h-32 bg-gray-100 rounded-3xl animate-pulse" />
+                        <div key={i} className="h-32 bg-gray-100 dark:bg-gray-800 rounded-3xl animate-pulse" />
                     ))}
                 </div>
             </main>
@@ -72,7 +72,7 @@ function UserDetailsContent() {
         <main className="p-6 md:p-10 max-w-7xl mx-auto pb-20">
             <div className="mb-8">
                 <Header title="User Details" />
-                <h2 className="font-mono text-xl text-gray-500 breal-all">
+                <h2 className="font-mono text-xl text-gray-500 dark:text-gray-400 break-all">
                     {user.user_id}
                 </h2>
             </div>
@@ -110,17 +110,17 @@ function UserDetailsContent() {
                             key={app.app_id}
                             onClick={() => setSelectedApp(selectedApp === app.app_id ? '' : app.app_id)}
                             className={`p-4 rounded-2xl border transition-all cursor-pointer ${selectedApp === app.app_id
-                                ? 'bg-black text-white border-black'
-                                : 'bg-white border-gray-100 hover:border-gray-200'
+                                ? 'bg-black text-white border-black dark:bg-primary dark:border-primary'
+                                : 'bg-white border-gray-100 hover:border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600'
                                 }`}
                         >
                             <div className="flex justify-between items-center mb-2">
-                                <span className="font-medium truncate pr-2">{app.app_id}</span>
-                                <span className={`text-xs ${selectedApp === app.app_id ? 'text-gray-400' : 'text-gray-400'}`}>
+                                <span className={`font-medium truncate pr-2 ${selectedApp === app.app_id ? 'text-white' : 'dark:text-gray-200'}`}>{app.app_id}</span>
+                                <span className={`text-xs ${selectedApp === app.app_id ? 'text-gray-400' : 'text-gray-400 dark:text-gray-500'}`}>
                                     {new Date(app.last_used).toLocaleDateString()}
                                 </span>
                             </div>
-                            <div className={`text-sm ${selectedApp === app.app_id ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <div className={`text-sm ${selectedApp === app.app_id ? 'text-gray-400' : 'text-gray-500 dark:text-gray-400'}`}>
                                 {app.event_count.toLocaleString()} events
                             </div>
                         </div>
@@ -141,17 +141,17 @@ function UserDetailsContent() {
                         )}
                     </div>
 
-                    <div className="bg-white rounded-3xl border border-gray-100 p-2">
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-2">
                         {activity.length === 0 ? (
                             <div className="text-center py-20 text-gray-400">
                                 No activity found
                             </div>
                         ) : (
-                            <div className="divide-y divide-gray-50">
+                            <div className="divide-y divide-gray-50 dark:divide-gray-700">
                                 {activity.map((event) => (
-                                    <div key={event.id} className="p-4 hover:bg-gray-50 transition-colors rounded-xl">
+                                    <div key={event.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors rounded-xl">
                                         <div className="flex justify-between items-start mb-1">
-                                            <span className="font-medium text-gray-900">
+                                            <span className="font-medium text-gray-900 dark:text-gray-100">
                                                 {formatEventName(event.event_name)}
                                             </span>
                                             <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
@@ -164,7 +164,7 @@ function UserDetailsContent() {
                                             <span>{event.platform}</span>
                                         </div>
                                         {event.metadata && Object.keys(event.metadata).length > 0 && (
-                                            <div className="bg-gray-50 rounded-lg p-2 text-xs font-mono text-gray-600 overflow-x-auto">
+                                            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-2 text-xs font-mono text-gray-600 dark:text-gray-400 overflow-x-auto">
                                                 {JSON.stringify(event.metadata, null, 2)}
                                             </div>
                                         )}
@@ -183,10 +183,10 @@ export default function UserDetailsPage() {
     return (
         <Suspense fallback={
             <main className="p-6 md:p-10 max-w-7xl mx-auto">
-                <div className="h-8 w-48 bg-gray-100 rounded-xl mb-10 animate-pulse" />
+                <div className="h-8 w-48 bg-gray-100 dark:bg-gray-800 rounded-xl mb-10 animate-pulse" />
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                     {[...Array(4)].map((_, i) => (
-                        <div key={i} className="h-32 bg-gray-100 rounded-3xl animate-pulse" />
+                        <div key={i} className="h-32 bg-gray-100 dark:bg-gray-800 rounded-3xl animate-pulse" />
                     ))}
                 </div>
             </main>
@@ -198,12 +198,12 @@ export default function UserDetailsPage() {
 
 function StatCard({ label, value, icon: Icon }: { label: string, value: string, icon: any }) {
     return (
-        <div className="bg-white p-5 rounded-3xl border border-gray-100">
-            <div className="flex items-center gap-2 mb-2 text-gray-400">
+        <div className="bg-white dark:bg-gray-800 p-5 rounded-3xl border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-2 mb-2 text-gray-400 dark:text-gray-500">
                 <Icon size={16} />
                 <span className="text-xs font-medium uppercase tracking-wider">{label}</span>
             </div>
-            <div className="text-2xl font-semibold">{value}</div>
+            <div className="text-2xl font-semibold dark:text-white">{value}</div>
         </div>
     );
 }

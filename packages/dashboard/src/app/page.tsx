@@ -5,21 +5,24 @@ import { api } from '@/lib/api';
 import { Overview } from '@/components/Overview';
 import { Header } from '@/components/layout/Shell';
 import type { Overview as OverviewType } from '@/lib/types';
+import { useSettings } from '@/lib/settings';
 
 export default function Home() {
+    const { defaultTimeRange } = useSettings();
     const [data, setData] = useState<OverviewType | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
     useEffect(() => {
-        api.getOverview()
+        setLoading(true);
+        api.getOverview(defaultTimeRange)
             .then(setData)
             .catch((err) => {
                 console.error('Failed to load data:', err);
                 setError(true);
             })
             .finally(() => setLoading(false));
-    }, []);
+    }, [defaultTimeRange]);
 
     if (loading) {
         return (

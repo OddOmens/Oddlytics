@@ -1,5 +1,5 @@
 import './globals.css';
-import { Sidebar } from '@/components/layout/Shell';
+import { MainLayout } from '@/components/layout/MainLayout';
 import { Providers } from './providers';
 
 export const metadata = {
@@ -13,15 +13,12 @@ export default function RootLayout({
     children: React.ReactNode
 }) {
     return (
-        <html lang="en">
-            <body className="min-h-screen bg-[#f3f4f6]">
+        <html lang="en" suppressHydrationWarning>
+            <body className="min-h-screen">
                 <Providers>
-                    <Sidebar />
-                    <main className="pl-28 pr-8 py-8 min-h-screen">
-                        <div className="max-w-[1600px] mx-auto">
-                            {children}
-                        </div>
-                    </main>
+                    <MainLayout>
+                        {children}
+                    </MainLayout>
                 </Providers>
             </body>
         </html>

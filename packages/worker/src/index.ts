@@ -141,10 +141,22 @@ app.post('/track', async (c) => {
 
 // Stats endpoints - require authentication for consistency with /track endpoint
 app.get('/stats/overview', async (c) => {
-
-
   try {
-    const data = await getOverview(c.env.DB);
+    const daysParam = c.req.query('days') || 'all';
+    let days = 0; // 0 will indicate 'all'
+    if (daysParam.endsWith('d')) {
+      days = parseInt(daysParam, 10);
+    } else if (daysParam === 'all') {
+      days = 0; // Explicitly set to 0 for 'all'
+    } else {
+      // Attempt to parse as a number directly if no 'd' suffix
+      const parsedDays = parseInt(daysParam, 10);
+      if (!isNaN(parsedDays)) {
+        days = parsedDays;
+      }
+    }
+
+    const data = await getOverview(c.env.DB, days);
     return c.json(data);
   } catch (error) {
     console.error('Overview error:', error);

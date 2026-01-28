@@ -1,3 +1,4 @@
+import { Overview, EventStat, User } from './types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || 'oddlytics-local-key';
@@ -23,8 +24,9 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
-    getOverview: async () => {
-        return fetchApi<any>('/stats/overview');
+    getOverview: async (days?: string) => {
+        const query = days ? `?days=${days}` : '';
+        return fetchApi<Overview>(`/stats/overview${query}`);
     },
 
     getEventStats: async ({ appId, startDate, endDate }: { appId?: string, startDate?: string, endDate?: string }) => {

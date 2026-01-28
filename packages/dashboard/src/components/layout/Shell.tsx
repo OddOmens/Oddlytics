@@ -22,7 +22,7 @@ export function Sidebar() {
 
     return (
         <aside
-            className={`fixed left-0 top-0 h-full bg-white border-r border-gray-100 flex flex-col transition-all duration-300 z-50 ${expanded ? 'w-64' : 'w-20'}`}
+            className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex flex-col transition-all duration-300 z-50 ${expanded ? 'w-64' : 'w-20'}`}
         >
             <div className="flex flex-col items-center py-8 h-full relative">
                 {/* Logo */}
@@ -65,7 +65,7 @@ function SidebarItem({
         <Link
             href={href}
             className={`flex items-center gap-4 p-3 rounded-xl transition-colors whitespace-nowrap overflow-hidden ${expanded ? 'justify-start' : 'justify-center'
-                } hover:bg-gray-50 text-gray-500 hover:text-black`}
+                } hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white`}
         >
             <Icon size={20} className="shrink-0" />
             {expanded && (
@@ -81,8 +81,8 @@ export function Header({ title }: { title: string }) {
     return (
         <header className="flex justify-between items-center mb-10 pl-2">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-                <p className="text-gray-500 mt-1">Analytics Dashboard</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{title}</h1>
+                <p className="text-gray-500 dark:text-gray-400 mt-1">Analytics Dashboard</p>
             </div>
 
             <div className="flex items-center gap-4">

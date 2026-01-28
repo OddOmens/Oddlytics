@@ -5,11 +5,46 @@
 :root {
   --background: 243 244 246;
   --foreground: 17 24 39;
+  --card: 255 255 255;
+}
+
+.dark {
+  --background: 17 24 39;
+  --foreground: 243 244 246;
+  --card: 31 41 55;
 }
 
 body {
-  background-color: #f3f4f6;
-  color: #111827;
+  @apply bg-[rgb(var(--background))] text-[rgb(var(--foreground))] transition-colors duration-200;
+}
+
+/* Compact Mode Utilities */
+.compact-mode .p-6 {
+  @apply p-3;
+}
+
+.compact-mode .p-8 {
+  @apply p-4;
+}
+
+.compact-mode .p-10 {
+  @apply p-5;
+}
+
+.compact-mode .gap-6 {
+  @apply gap-3;
+}
+
+.compact-mode .mb-6 {
+  @apply mb-3;
+}
+
+.compact-mode .mb-8 {
+  @apply mb-4;
+}
+
+.compact-mode .space-y-4> :not([hidden])~ :not([hidden]) {
+  @apply mt-2;
 }
 
 /* Hide scrollbar for cleaner UI but keep functionality */

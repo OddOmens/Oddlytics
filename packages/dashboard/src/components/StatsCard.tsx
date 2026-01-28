@@ -29,7 +29,9 @@ export function StatsCard({
     return (
         <div className={clsx(
             "rounded-3xl p-6 flex flex-col justify-between relative shadow-soft transition-transform hover:scale-[1.01] duration-300",
-            isBlack ? "bg-black text-white" : "bg-white text-gray-900",
+            isBlack
+                ? "bg-black text-white dark:bg-[#0a0a0a]"
+                : "bg-white text-gray-900 dark:bg-gray-800 dark:text-white",
             className
         )}>
             <div className="flex justify-between items-start mb-4">
@@ -37,12 +39,12 @@ export function StatsCard({
                     {icon && (
                         <div className={clsx(
                             "w-10 h-10 rounded-full flex items-center justify-center",
-                            isBlack ? "bg-white/10" : "bg-gray-100 text-gray-600"
+                            isBlack ? "bg-white/10" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
                         )}>
                             {icon}
                         </div>
                     )}
-                    <span className={clsx("font-medium", isBlack ? "text-gray-300" : "text-gray-500")}>
+                    <span className={clsx("font-medium", isBlack ? "text-gray-300" : "text-gray-500 dark:text-gray-400")}>
                         {title}
                     </span>
                 </div>
@@ -57,7 +59,7 @@ export function StatsCard({
             <div>
                 <h3 className="text-3xl font-bold mb-2 tracking-tight">{value.toLocaleString()}</h3>
                 {description && (
-                    <p className={clsx("text-sm", isBlack ? "text-gray-400" : "text-gray-500")}>
+                    <p className={clsx("text-sm", isBlack ? "text-gray-400" : "text-gray-500 dark:text-gray-400")}>
                         {description}
                     </p>
                 )}
@@ -72,7 +74,7 @@ export function StatsCard({
                         {trend.isPositive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
                         {Math.abs(trend.value)}%
                     </div>
-                    <span className={clsx("text-xs", isBlack ? "text-gray-500" : "text-gray-400")}>vs last month</span>
+                    <span className={clsx("text-xs", isBlack ? "text-gray-500" : "text-gray-400 dark:text-gray-500")}>vs last month</span>
                 </div>
             )}
         </div>

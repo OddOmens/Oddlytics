@@ -1,13 +1,24 @@
 import type { Env } from './types';
 
-export async function getOverview(db: D1Database) {
+export async function getOverview(db: D1Database, days: number = 0) {
+  let whereClause = '';
+  const params: any[] = [];
+
+  if (days > 0) {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    const cutoffStr = cutoffDate.toISOString().split('T')[0];
+    whereClause = ' WHERE date(timestamp) >= ?';
+    params.push(cutoffStr);
+  }
+
   const totalEvents = await db.prepare(
-    'SELECT COUNT(*) as count FROM events'
-  ).first<{ count: number }>();
+    `SELECT COUNT(*) as count FROM events${whereClause}`
+  ).bind(...params).first<{ count: number }>();
 
   const totalUsers = await db.prepare(
-    'SELECT COUNT(DISTINCT user_id) as count FROM events'
-  ).first<{ count: number }>();
+    `SELECT COUNT(DISTINCT user_id) as count FROM events${whereClause}`
+  ).bind(...params).first<{ count: number }>();
 
   const appsList = await db.prepare(
     'SELECT app_id, total_events, total_sessions, first_seen, last_seen FROM event_counts_by_app'

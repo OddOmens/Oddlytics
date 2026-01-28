@@ -42,20 +42,20 @@ export function Overview({ data }: OverviewProps) {
         <div className="grid grid-cols-12 gap-6 auto-rows-[minmax(180px,auto)]">
 
             {/* Hero / Greeting Card - Spans full width or large chunk */}
-            <div className="col-span-12 lg:col-span-8 bg-white rounded-3xl p-8 shadow-soft flex flex-col justify-center relative overflow-hidden">
+            <div className="col-span-12 lg:col-span-8 bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-soft flex flex-col justify-center relative overflow-hidden">
                 <div className="relative z-10">
                     <h2 className="text-4xl font-bold mb-2">Hey, Welcome back! 👋</h2>
                     <p className="text-gray-500 text-lg mb-6 max-w-md">
                         Here's what's happening with your apps today. You have {data.total_events} new events tracked.
                     </p>
-                    <div className="flex gap-4">
-                        <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold">
+                    <div className="flex flex-wrap gap-4">
+                        <div className="bg-primary/10 text-primary dark:bg-primary/20 px-4 py-2 rounded-full text-sm font-semibold">
                             {totalApps} Active Apps
                         </div>
-                        <div className="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-sm font-semibold">
+                        <div className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-full text-sm font-semibold">
                             {totalSessions} Sessions
                         </div>
-                        <div className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full text-sm font-semibold">
+                        <div className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-4 py-2 rounded-full text-sm font-semibold">
                             {data.total_users || 0} Users
                         </div>
                     </div>
@@ -81,26 +81,26 @@ export function Overview({ data }: OverviewProps) {
             </div>
 
             {/* App List / "Visa" Card style */}
-            <div className="col-span-12 md:col-span-6 lg:col-span-4 bg-white rounded-3xl p-6 shadow-soft flex flex-col">
+            <div className="col-span-12 md:col-span-6 lg:col-span-4 bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-soft flex flex-col">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold text-lg">Your Apps</h3>
-                    <span className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-500">{totalApps}</span>
+                    <h3 className="font-bold text-lg dark:text-white">Your Apps</h3>
+                    <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full text-gray-500 dark:text-gray-400">{totalApps}</span>
                 </div>
 
                 <div className="flex-1 overflow-y-auto no-scrollbar space-y-3">
                     {data.apps.map(app => (
                         <Link key={app.app_id} href={`/apps?id=${encodeURIComponent(app.app_id)}`} className="block group">
-                            <div className="p-4 rounded-2xl border border-gray-100 hover:border-primary/30 hover:bg-primary/5 transition-all flex justify-between items-center">
+                            <div className="p-4 rounded-2xl border border-gray-100 dark:border-gray-700 hover:border-primary/30 dark:hover:border-primary/50 hover:bg-primary/5 dark:hover:bg-primary/10 transition-all flex justify-between items-center">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 group-hover:bg-white group-hover:text-primary transition-colors shadow-sm">
+                                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 group-hover:bg-white dark:group-hover:bg-gray-600 group-hover:text-primary transition-colors shadow-sm">
                                         <Smartphone size={18} />
                                     </div>
                                     <div>
-                                        <div className="font-semibold text-sm">{app.app_id}</div>
-                                        <div className="text-xs text-gray-400">{app.total_events} events</div>
+                                        <div className="font-semibold text-sm dark:text-gray-200">{app.app_id}</div>
+                                        <div className="text-xs text-gray-400 dark:text-gray-500">{app.total_events} events</div>
                                     </div>
                                 </div>
-                                <ArrowRight size={16} className="text-gray-300 group-hover:text-primary transition-colors" />
+                                <ArrowRight size={16} className="text-gray-300 dark:text-gray-600 group-hover:text-primary transition-colors" />
                             </div>
                         </Link>
                     ))}
@@ -114,10 +114,10 @@ export function Overview({ data }: OverviewProps) {
             </div>
 
             {/* Charts Section */}
-            <div className="col-span-12 md:col-span-6 lg:col-span-4 bg-white rounded-3xl p-6 shadow-soft">
+            <div className="col-span-12 md:col-span-6 lg:col-span-4 bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-soft">
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-lg">Top Events</h3>
-                    <button className="text-xs text-gray-400 hover:text-black">View all</button>
+                    <h3 className="font-bold text-lg dark:text-white">Top Events</h3>
+                    <button className="text-xs text-gray-400 hover:text-black dark:hover:text-white">View all</button>
                 </div>
                 <DonutChart
                     className="mt-6 h-40"
@@ -132,19 +132,19 @@ export function Overview({ data }: OverviewProps) {
                     {topEventsData.slice(0, 3).map((e, i) => (
                         <div key={i} className="flex justify-between text-sm">
                             <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-orange-500' : 'bg-gray-300'}`} />
-                                <span className="text-gray-600 truncate max-w-[150px]" title={e.name}>{e.name}</span>
+                                <div className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                                <span className="text-gray-600 dark:text-gray-400 truncate max-w-[150px]" title={e.name}>{e.name}</span>
                             </div>
-                            <span className="font-medium">{e.value}</span>
+                            <span className="font-medium dark:text-gray-200">{e.value}</span>
                         </div>
                     ))}
                 </div>
             </div>
 
-            <div className="col-span-12 lg:col-span-4 bg-white rounded-3xl p-6 shadow-soft">
+            <div className="col-span-12 lg:col-span-4 bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-soft">
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-lg">Activity</h3>
-                    <div className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">Weekly</div>
+                    <h3 className="font-bold text-lg dark:text-white">Activity</h3>
+                    <div className="text-xs text-gray-400 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded-lg">Weekly</div>
                 </div>
                 <BarChart
                     className="mt-4 h-48"
