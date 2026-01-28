@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type { Env, TrackEventRequest, TrackBatchRequest } from './types';
-import { getOverview, getEventStats, getTimeline, getUsers, getUserDetails, getUserActivity, getAliases, upsertAlias, deleteAlias, getAppStats } from './stats';
+import { getOverview, getEventStats, getTimeline, getUsers, getUserDetails, getUserActivity, getAliases, upsertAlias, deleteAlias, getAppStats, getAppSettings, upsertAppSettings } from './stats';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -345,6 +345,38 @@ app.delete('/aliases', async (c) => {
   } catch (error) {
     console.error('Delete alias error:', error);
     return c.json({ error: 'Failed to delete alias' }, 500);
+  }
+});
+
+// App Settings Endpoints
+
+app.get('/apps/:appId/settings', async (c) => {
+  try {
+    const appId = c.req.param('appId');
+    const settings = await getAppSettings(c.env.DB, appId);
+    return c.json(settings || { app_id: appId, icon_url: null, display_name: null });
+  } catch (error) {
+    console.error('Get app settings error:', error);
+    return c.json({ error: 'Failed to fetch app settings' }, 500);
+  }
+});
+
+app.post('/apps/:appId/settings', async (c) => {
+  const apiKey = c.req.header('X-API-KEY');
+  if (!apiKey || apiKey !== c.env.AUTH_KEY) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  try {
+    const appId = c.req.param('appId');
+    const body = await c.req.json();
+    const { icon_url, display_name } = body;
+
+    await upsertAppSettings(c.env.DB, appId, { icon_url, display_name });
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Upsert app settings error:', error);
+    return c.json({ error: 'Failed to save app settings' }, 500);
   }
 });
 

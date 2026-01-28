@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 import { Header } from '@/components/layout/Shell';
 import { StatsCard } from '@/components/StatsCard';
 import { AreaChart, BarList } from '@tremor/react';
-import { Activity, Clock, Calendar, Users, ArrowRight, Trash2 } from 'lucide-react';
+import { Activity, Clock, Calendar, Users, ArrowRight, Trash2, Smartphone } from 'lucide-react';
 import type { EventStat, TimelinePoint, User } from '@/lib/types';
 import { useSettings } from '@/lib/settings';
 import { useAliases } from '@/lib/alias';
@@ -35,6 +35,12 @@ export function AppDashboard({ appId }: { appId: string }) {
     const [deleteAppConfirm, setDeleteAppConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
+    // Customize State
+    const [isCustomizing, setIsCustomizing] = useState(false);
+    const [isSavingSettings, setIsSavingSettings] = useState(false);
+    const [iconUrl, setIconUrl] = useState<string>('');
+    const [displayName, setDisplayName] = useState<string>('');
+
     useEffect(() => {
         setLoading(true);
         Promise.all([
@@ -42,12 +48,17 @@ export function AppDashboard({ appId }: { appId: string }) {
             // Default to 14 days for chart
             api.getTimeline({ appId, days: 14 }),
             api.getAppStats(appId),
-            api.getUsers(5, 0, '', appId)
-        ]).then(([eventsData, timelineData, statsData, usersData]) => {
+            api.getUsers(5, 0, '', appId),
+            api.getAppSettings(appId)
+        ]).then(([eventsData, timelineData, statsData, usersData, settingsData]) => {
             setEvents(eventsData);
             setTimeline(timelineData);
             setStats(statsData);
             setRecentUsers(usersData.users);
+            if (settingsData) {
+                setIconUrl(settingsData.icon_url || '');
+                setDisplayName(settingsData.display_name || '');
+            }
         }).catch(err => {
             console.error("Failed to fetch app data", err);
         }).finally(() => setLoading(false));
@@ -65,6 +76,22 @@ export function AppDashboard({ appId }: { appId: string }) {
         await saveAlias(appId, editingEvent.original, editingEvent.current);
         setIsSavingAlias(false);
         setEditingEvent(null);
+    };
+
+    const handleSaveSettings = async () => {
+        setIsSavingSettings(true);
+        try {
+            await api.updateAppSettings(appId, { icon_url: iconUrl || null, display_name: displayName || null });
+            toast.success('App settings updated');
+            setIsCustomizing(false);
+            // Refresh to update sidebar
+            window.location.reload();
+        } catch (error) {
+            console.error('Failed to update app settings:', error);
+            toast.error('Failed to update app settings');
+        } finally {
+            setIsSavingSettings(false);
+        }
     };
 
     const handleDeleteApp = async () => {
@@ -93,14 +120,34 @@ export function AppDashboard({ appId }: { appId: string }) {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <Header title={appId} />
-                <button
-                    onClick={() => setDeleteAppConfirm(true)}
-                    className="px-4 py-2 text-sm font-medium text-red-600 hover:text-white hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-xl transition-all flex items-center gap-2"
-                >
-                    <Trash2 size={16} />
-                    Delete App Data
-                </button>
+                <div className="flex items-center gap-4">
+                    {iconUrl ? (
+                        <div className="w-12 h-12 rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+                            <img src={iconUrl} alt={appId} className="w-full h-full object-cover" />
+                        </div>
+                    ) : (
+                        <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-400">
+                            <Smartphone size={24} />
+                        </div>
+                    )}
+                    <Header title={displayName || appId} />
+                </div>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setIsCustomizing(true)}
+                        className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-black bg-white border border-gray-200 rounded-xl transition-all flex items-center gap-2 shadow-sm"
+                    >
+                        <Pencil size={16} />
+                        Customize App
+                    </button>
+                    <button
+                        onClick={() => setDeleteAppConfirm(true)}
+                        className="px-4 py-2 text-sm font-medium text-red-600 hover:text-white hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-xl transition-all flex items-center gap-2"
+                    >
+                        <Trash2 size={16} />
+                        Delete App Data
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-12 gap-6">
@@ -243,6 +290,68 @@ export function AppDashboard({ appId }: { appId: string }) {
                     </div>
                 </div>
             </div>
+
+            {/* Customize App Modal */}
+            <Dialog open={isCustomizing} onClose={() => setIsCustomizing(false)} static={true}>
+                <DialogPanel className="max-w-md bg-white">
+                    <Title>Customize App</Title>
+                    <Text className="mb-6">
+                        Personalize how this app appears in your dashboard and sidebar.
+                    </Text>
+
+                    <div className="space-y-4 mb-8">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Display Name</label>
+                            <input
+                                type="text"
+                                value={displayName}
+                                onChange={(e) => setDisplayName(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                placeholder="App Display Name (e.g. My Awesome App)"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Icon Image URL</label>
+                            <input
+                                type="text"
+                                value={iconUrl}
+                                onChange={(e) => setIconUrl(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                placeholder="https://example.com/icon.png"
+                            />
+                            <p className="text-[10px] text-gray-400 mt-1">Provide an absolute URL to a square image (PNG/JPG/SVG).</p>
+                        </div>
+
+                        {iconUrl && (
+                            <div className="p-4 bg-gray-50 rounded-2xl flex items-center justify-center">
+                                <div className="text-center">
+                                    <p className="text-[10px] text-gray-400 mb-2 uppercase tracking-tight font-bold">Preview</p>
+                                    <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-white shadow-soft mx-auto">
+                                        <img src={iconUrl} alt="Preview" className="w-full h-full object-cover" />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                        <button
+                            onClick={() => setIsCustomizing(false)}
+                            className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSaveSettings}
+                            disabled={isSavingSettings}
+                            className="px-4 py-2 text-sm font-medium bg-black text-white rounded-xl hover:bg-gray-900 transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
+                        >
+                            {isSavingSettings ? 'Saving...' : 'Save Changes'}
+                        </button>
+                    </div>
+                </DialogPanel>
+            </Dialog>
 
             {/* Edit Alias Modal */}
             <Dialog open={!!editingEvent} onClose={() => setEditingEvent(null)} static={true}>

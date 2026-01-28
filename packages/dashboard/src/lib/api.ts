@@ -106,5 +106,16 @@ export const api = {
         return fetchApi<{ success: boolean, deleted: number }>(`/apps/${encodeURIComponent(appId)}`, {
             method: 'DELETE'
         });
+    },
+
+    getAppSettings: async (appId: string) => {
+        return fetchApi<{ app_id: string, icon_url: string | null, display_name: string | null }>(`/apps/${encodeURIComponent(appId)}/settings`);
+    },
+
+    updateAppSettings: async (appId: string, settings: { icon_url?: string | null, display_name?: string | null }) => {
+        return fetchApi(`/apps/${encodeURIComponent(appId)}/settings`, {
+            method: 'POST',
+            body: JSON.stringify(settings)
+        });
     }
 };

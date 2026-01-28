@@ -42,3 +42,10 @@ CREATE TABLE event_aliases (
   alias TEXT NOT NULL,
   PRIMARY KEY (app_id, event_name)
 );
+
+-- App Settings: Custom configurations per app (like icons)
+CREATE TABLE app_settings (
+  app_id TEXT PRIMARY KEY,
+  icon_url TEXT,
+  display_name TEXT
+);

@@ -88,9 +88,9 @@ export function Overview({ data }: OverviewProps) {
                                 title="Total Events"
                                 value={data.total_events}
                                 description="Lifetime events captured"
-                                variant="black"
+                                variant="white"
                                 trend={data.previous_total_events !== undefined ? { value: Math.abs(trendValue), isPositive } : undefined}
-                                icon={<Activity size={20} className="text-white" />}
+                                icon={<Activity size={20} />}
                                 className="h-full"
                             />
                         );

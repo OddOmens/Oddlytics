@@ -4,6 +4,8 @@ export interface App {
     total_sessions: number;
     first_seen: string;
     last_seen: string;
+    icon_url?: string | null;
+    display_name?: string | null;
 }
 
 export interface TopEvent {

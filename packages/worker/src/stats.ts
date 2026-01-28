@@ -38,9 +38,18 @@ export async function getOverview(db: D1Database, days: number = 0) {
     `SELECT COUNT(DISTINCT user_id) as count FROM events${whereClause}`
   ).bind(...params).first<{ count: number }>();
 
-  const appsList = await db.prepare(
-    'SELECT app_id, total_events, total_sessions, first_seen, last_seen FROM event_counts_by_app'
-  ).all();
+  const appsList = await db.prepare(`
+    SELECT 
+      a.app_id, 
+      a.total_events, 
+      a.total_sessions, 
+      a.first_seen, 
+      a.last_seen,
+      s.icon_url,
+      s.display_name
+    FROM event_counts_by_app a
+    LEFT JOIN app_settings s ON a.app_id = s.app_id
+  `).all();
 
   const topEvents = await db.prepare(
     'SELECT event_name, count FROM top_events ORDER BY count DESC LIMIT 10'
@@ -53,6 +62,20 @@ export async function getOverview(db: D1Database, days: number = 0) {
     apps: appsList.results || [],
     top_events: topEvents.results || []
   };
+}
+
+export async function getAppSettings(db: D1Database, appId: string) {
+  return db.prepare('SELECT * FROM app_settings WHERE app_id = ?').bind(appId).first();
+}
+
+export async function upsertAppSettings(db: D1Database, appId: string, settings: { icon_url?: string, display_name?: string }) {
+  await db.prepare(`
+    INSERT INTO app_settings (app_id, icon_url, display_name)
+    VALUES (?, ?, ?)
+    ON CONFLICT(app_id) DO UPDATE SET 
+      icon_url = COALESCE(excluded.icon_url, app_settings.icon_url),
+      display_name = COALESCE(excluded.display_name, app_settings.display_name)
+  `).bind(appId, settings.icon_url || null, settings.display_name || null).run();
 }
 
 const isValidDate = (dateStr: string): boolean => {
