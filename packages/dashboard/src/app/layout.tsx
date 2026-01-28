@@ -1,3 +1,4 @@
+import './globals.css';
 import { Sidebar } from '@/components/layout/Shell';
 
 export const metadata = {
