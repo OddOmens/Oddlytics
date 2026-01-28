@@ -13,7 +13,6 @@ CREATE TABLE events (
 CREATE INDEX idx_timestamp ON events(timestamp);
 CREATE INDEX idx_app_id ON events(app_id);
 CREATE INDEX idx_event_name ON events(event_name);
-CREATE INDEX idx_session_id ON events(session_id);
 
 -- View: Event counts by app
 CREATE VIEW event_counts_by_app AS
@@ -33,6 +32,4 @@ SELECT
   COUNT(*) as count,
   COUNT(DISTINCT app_id) as app_count
 FROM events
-GROUP BY event_name
-ORDER BY count DESC
-LIMIT 100;
+GROUP BY event_name;
