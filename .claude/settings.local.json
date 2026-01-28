@@ -6,7 +6,13 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Skill(superpowers:writing-plans)",
-      "Skill(superpowers:subagent-driven-development)"
+      "Skill(superpowers:subagent-driven-development)",
+      "Bash(test -d:*)",
+      "Bash(tree:*)",
+      "Bash(npm install)",
+      "Bash(git show 92b7d23 --name-only --format=)",
+      "Bash(git log --all --oneline --grep=\"test\" --grep=\"wrangler\" -i)",
+      "Bash(cd /Users/kadynwishcop/Library/CloudStorage/GoogleDrive-hello@medusast.one/Shared\\\\ drives/04.\\\\ Odd\\\\ Omens/04.\\\\ Products/Oddlytics && git show:*)"
     ]
   }
 }
