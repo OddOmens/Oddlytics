@@ -147,17 +147,22 @@ export function Overview({ data }: OverviewProps) {
                     variant="pie"
                 />
                 <div className="mt-6 space-y-2">
-                    {topEventsData.slice(0, 3).map((e, i) => (
-                        <div key={i} className="flex justify-between text-sm">
-                            <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full`} style={{ backgroundColor: ['#8b5cf6', '#6366f1', '#f43f5e'][i] || '#9ca3af' }} />
-                                <Tooltip content={e.name}>
-                                    <span className="text-gray-600 dark:text-gray-400 truncate max-w-[150px]">{e.name}</span>
-                                </Tooltip>
+                    {topEventsData.slice(0, 3).map((e, i) => {
+                        const colors = ["bg-violet-500", "bg-indigo-500", "bg-rose-500", "bg-cyan-500", "bg-amber-500"];
+                        const colorClass = colors[i] || "bg-gray-400";
+
+                        return (
+                            <div key={i} className="flex justify-between text-sm">
+                                <div className="flex items-center gap-2">
+                                    <div className={`w-2 h-2 rounded-full ${colorClass}`} />
+                                    <Tooltip content={e.name}>
+                                        <span className="text-gray-600 dark:text-gray-400 truncate max-w-[150px]">{e.name}</span>
+                                    </Tooltip>
+                                </div>
+                                <span className="font-medium dark:text-gray-200">{e.value}</span>
                             </div>
-                            <span className="font-medium dark:text-gray-200">{e.value}</span>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 

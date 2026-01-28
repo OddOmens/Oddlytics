@@ -114,18 +114,7 @@ module.exports = {
         },
         {
             pattern:
-                /^(w|h)-(tremor|dark-tremor)-.+$/,
-            variants: ['hover', 'ui-selected'],
-        },
-        {
-            pattern:
-                /^(from|to)-(tremor|dark-tremor)-.+$/,
-            variants: ['hover', 'ui-selected'],
-        },
-        {
-            pattern:
-                /^(alpha)-(tremor|dark-tremor)-.+$/,
-            variants: ['hover', 'ui-selected'],
+                /^(bg|fill|text)-(violet|indigo|rose|cyan|amber)-(400|500|600)$/,
         },
     ],
     plugins: [],
