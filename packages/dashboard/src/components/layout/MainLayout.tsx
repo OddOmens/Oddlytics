@@ -9,7 +9,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     return (
         <div className={compactMode ? 'compact-mode' : ''}>
             <Sidebar />
-            <main className="pl-28 pr-8 py-8 min-h-screen">
+            <main className="pl-24 pr-8 py-8 min-h-screen transition-all duration-300">
                 <div className="max-w-[1600px] mx-auto">
                     {children}
                 </div>

@@ -142,7 +142,7 @@ export function Overview({ data }: OverviewProps) {
                     data={topEventsData}
                     category="value"
                     index="name"
-                    colors={["orange", "slate", "gray", "zinc"]}
+                    colors={["violet", "indigo", "rose", "cyan", "amber"]}
                     showAnimation={true}
                     variant="pie"
                 />
@@ -150,7 +150,7 @@ export function Overview({ data }: OverviewProps) {
                     {topEventsData.slice(0, 3).map((e, i) => (
                         <div key={i} className="flex justify-between text-sm">
                             <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                                <div className={`w-2 h-2 rounded-full`} style={{ backgroundColor: ['#8b5cf6', '#6366f1', '#f43f5e'][i] || '#9ca3af' }} />
                                 <Tooltip content={e.name}>
                                     <span className="text-gray-600 dark:text-gray-400 truncate max-w-[150px]">{e.name}</span>
                                 </Tooltip>
@@ -171,7 +171,7 @@ export function Overview({ data }: OverviewProps) {
                     data={appsData}
                     index="name"
                     categories={["value"]}
-                    colors={["orange"]}
+                    colors={["violet"]}
                     yAxisWidth={0}
                     showAnimation={true}
                     showLegend={false}
