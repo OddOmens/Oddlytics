@@ -5,18 +5,21 @@ import { api } from '@/lib/api';
 import { Header } from '@/components/layout/Shell';
 import { StatsCard } from '@/components/StatsCard';
 import { AreaChart, BarList } from '@tremor/react';
-import { Activity, Clock, Calendar } from 'lucide-react';
-import type { EventStat, TimelinePoint } from '@/lib/types';
+import { Activity, Clock, Calendar, Users, ArrowRight } from 'lucide-react';
+import type { EventStat, TimelinePoint, User } from '@/lib/types';
 import { useSettings } from '@/lib/settings';
 import { useAliases } from '@/lib/alias';
 import { Pencil, X, Check } from 'lucide-react';
-import { Dialog, DialogPanel, Title, Text } from '@tremor/react';
+import { Dialog, DialogPanel, Title, Text, Card } from '@tremor/react';
+import Link from 'next/link';
 
 export function AppDashboard({ appId }: { appId: string }) {
     const { formatEventName } = useSettings();
     const { getAlias, saveAlias } = useAliases();
     const [events, setEvents] = useState<EventStat[]>([]);
     const [timeline, setTimeline] = useState<TimelinePoint[]>([]);
+    const [stats, setStats] = useState<any>(null);
+    const [recentUsers, setRecentUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Alias Editing State
@@ -28,10 +31,14 @@ export function AppDashboard({ appId }: { appId: string }) {
         Promise.all([
             api.getEventStats({ appId }),
             // Default to 14 days for chart
-            api.getTimeline({ appId, days: 14 })
-        ]).then(([eventsData, timelineData]) => {
+            api.getTimeline({ appId, days: 14 }),
+            api.getAppStats(appId),
+            api.getUsers(5, 0, '', appId)
+        ]).then(([eventsData, timelineData, statsData, usersData]) => {
             setEvents(eventsData);
             setTimeline(timelineData);
+            setStats(statsData);
+            setRecentUsers(usersData.users);
         }).catch(err => {
             console.error("Failed to fetch app data", err);
         }).finally(() => setLoading(false));
@@ -68,7 +75,7 @@ export function AppDashboard({ appId }: { appId: string }) {
 
             <div className="grid grid-cols-12 gap-6">
                 {/* Main Stats */}
-                <div className="col-span-12 md:col-span-4">
+                <div className="col-span-12 md:col-span-4 lg:col-span-3">
                     <StatsCard
                         title="Total Events"
                         value={totalEvents}
@@ -76,7 +83,15 @@ export function AppDashboard({ appId }: { appId: string }) {
                         description="All time events"
                     />
                 </div>
-                <div className="col-span-12 md:col-span-4">
+                <div className="col-span-12 md:col-span-4 lg:col-span-3">
+                    <StatsCard
+                        title="Unique Users"
+                        value={stats?.total_users || 0}
+                        icon={<Users size={20} />}
+                        description="Across all sessions"
+                    />
+                </div>
+                <div className="col-span-12 md:col-span-4 lg:col-span-3">
                     <StatsCard
                         title="Top Event"
                         value={events[0] ? getDisplayName(events[0].event_name) : '-'}
@@ -84,12 +99,12 @@ export function AppDashboard({ appId }: { appId: string }) {
                         description={events[0] ? `${events[0].count} times` : 'No data'}
                     />
                 </div>
-                <div className="col-span-12 md:col-span-4">
+                <div className="col-span-12 md:col-span-4 lg:col-span-3">
                     <StatsCard
-                        title="Data Points"
-                        value={timeline.length}
+                        title="Timeline Peaks"
+                        value={Math.max(...timeline.map(p => p.count), 0)}
                         icon={<Calendar size={20} />}
-                        description="Days with activity"
+                        description="Highest daily activity"
                     />
                 </div>
 
@@ -150,6 +165,48 @@ export function AppDashboard({ appId }: { appId: string }) {
                                 </div>
                             );
                         })}
+                    </div>
+                </div>
+
+                {/* Recent Users for this App */}
+                <div className="col-span-12 bg-white rounded-3xl p-6 shadow-soft">
+                    <div className="flex justify-between items-center mb-6">
+                        <div className="flex items-center gap-2">
+                            <Users size={20} className="text-gray-400" />
+                            <h3 className="font-bold text-lg">Recent Users</h3>
+                        </div>
+                        <Link
+                            href={`/users?app_id=${appId}`}
+                            className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
+                        >
+                            View all users <ArrowRight size={14} />
+                        </Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        {recentUsers.map((user) => (
+                            <Link key={user.user_id} href={`/users/detail?id=${user.user_id}`}>
+                                <div className="p-4 rounded-2xl border border-gray-100 hover:border-primary/30 hover:bg-primary/5 transition-all text-center">
+                                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 mx-auto mb-3">
+                                        <Users size={20} />
+                                    </div>
+                                    <div className="font-mono text-[10px] text-gray-500 truncate mb-1" title={user.user_id}>
+                                        {user.user_id}
+                                    </div>
+                                    <div className="text-sm font-semibold text-gray-900">
+                                        {user.total_events} events
+                                    </div>
+                                    <div className="text-[10px] text-gray-400 mt-1">
+                                        Seen {new Date(user.last_seen).toLocaleDateString()}
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                        {recentUsers.length === 0 && (
+                            <div className="col-span-full py-10 text-center text-gray-400 text-sm">
+                                No users found for this app.
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

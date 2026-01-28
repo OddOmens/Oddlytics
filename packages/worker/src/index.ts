@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type { Env, TrackEventRequest, TrackBatchRequest } from './types';
-import { getOverview, getEventStats, getTimeline, getUsers, getUserDetails, getUserActivity, getAliases, upsertAlias, deleteAlias } from './stats';
+import { getOverview, getEventStats, getTimeline, getUsers, getUserDetails, getUserActivity, getAliases, upsertAlias, deleteAlias, getAppStats } from './stats';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -181,6 +181,17 @@ app.get('/stats/events', async (c) => {
   }
 });
 
+app.get('/stats/app/:appId', async (c) => {
+  try {
+    const appId = c.req.param('appId');
+    const data = await getAppStats(c.env.DB, appId);
+    return c.json(data);
+  } catch (error) {
+    console.error('App stats error:', error);
+    return c.json({ error: 'Failed to fetch app stats' }, 500);
+  }
+});
+
 app.get('/stats/timeline', async (c) => {
 
 
@@ -216,8 +227,9 @@ app.get('/stats/users', async (c) => {
     const limit = parseInt(c.req.query('limit') || '50', 10);
     const offset = parseInt(c.req.query('offset') || '0', 10);
     const search = c.req.query('search');
+    const appId = c.req.query('app_id');
 
-    const data = await getUsers(c.env.DB, limit, offset, search);
+    const data = await getUsers(c.env.DB, limit, offset, search, appId);
     return c.json(data);
   } catch (error) {
     console.error('Users error:', error);

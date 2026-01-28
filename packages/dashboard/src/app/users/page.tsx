@@ -5,10 +5,14 @@ import { api } from '@/lib/api';
 import { User } from '@/lib/types';
 import { Header } from '@/components/layout/Shell';
 import Link from 'next/link';
-import { Search, ChevronLeft, ChevronRight, User as UserIcon } from 'lucide-react';
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Search, ChevronLeft, ChevronRight, User as UserIcon, X } from 'lucide-react';
 import { Card } from '@tremor/react';
 
-export default function UsersPage() {
+function UsersPageContent() {
+    const searchParams = useSearchParams();
+    const appId = searchParams.get('app_id') || '';
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -18,12 +22,12 @@ export default function UsersPage() {
 
     useEffect(() => {
         loadUsers();
-    }, [offset, search]);
+    }, [offset, search, appId]);
 
     async function loadUsers() {
         setLoading(true);
         try {
-            const data = await api.getUsers(LIMIT, offset, search);
+            const data = await api.getUsers(LIMIT, offset, search, appId);
             setUsers(data.users);
             setTotal(data.pagination.total);
         } catch (e) {
@@ -35,9 +39,9 @@ export default function UsersPage() {
 
     return (
         <main className="p-6 md:p-10 max-w-7xl mx-auto mb-20">
-            <Header title="Users" />
+            <Header title={appId ? `Users of ${appId}` : "Users"} />
 
-            <div className="mb-6 flex gap-4">
+            <div className="mb-6 flex flex-wrap gap-4 items-center">
                 <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                     <input
@@ -51,6 +55,16 @@ export default function UsersPage() {
                         }}
                     />
                 </div>
+
+                {appId && (
+                    <Link
+                        href="/users"
+                        className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm hover:bg-gray-200 transition-colors"
+                    >
+                        <span>App: {appId}</span>
+                        <X size={14} />
+                    </Link>
+                )}
             </div>
 
             {loading ? (
@@ -117,5 +131,13 @@ export default function UsersPage() {
                 </div>
             )}
         </main>
+    );
+}
+
+export default function UsersPage() {
+    return (
+        <Suspense fallback={<div>Loading users...</div>}>
+            <UsersPageContent />
+        </Suspense>
     );
 }

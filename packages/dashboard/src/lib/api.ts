@@ -42,12 +42,17 @@ export const api = {
         return fetchApi<any[]>(`/stats/timeline?${params}`).then((res: any) => res.timeline);
     },
 
-    getUsers: async (limit = 50, offset = 0, search = '') => {
+    getAppStats: async (appId: string) => {
+        return fetchApi<any>(`/stats/app/${appId}`);
+    },
+
+    getUsers: async (limit = 50, offset = 0, search = '', appId?: string) => {
         const params = new URLSearchParams({
             limit: limit.toString(),
             offset: offset.toString(),
         });
         if (search) params.append('search', search);
+        if (appId) params.append('app_id', appId);
 
         return fetchApi<{ users: any[], pagination: any }>(`/stats/users?${params}`);
     },

@@ -116,11 +116,25 @@ export async function getTimeline(
   return result.results || [];
 }
 
+export async function getAppStats(db: D1Database, appId: string) {
+  const stats = await db.prepare(`
+    SELECT
+      COUNT(*) as total_events,
+      COUNT(DISTINCT user_id) as total_users,
+      COUNT(DISTINCT session_id) as total_sessions
+    FROM events
+    WHERE app_id = ?
+  `).bind(appId).first();
+
+  return stats;
+}
+
 export async function getUsers(
   db: D1Database,
   limit: number = 50,
   offset: number = 0,
-  search?: string
+  search?: string,
+  appId?: string
 ) {
   let query = `
     SELECT
@@ -136,6 +150,11 @@ export async function getUsers(
 
   const params: any[] = [];
 
+  if (appId) {
+    query += ' AND app_id = ?';
+    params.push(appId);
+  }
+
   if (search) {
     query += ' AND user_id LIKE ?';
     params.push(`%${search}%`);
@@ -150,6 +169,11 @@ export async function getUsers(
   // Get total count for pagination
   let countQuery = 'SELECT COUNT(DISTINCT user_id) as count FROM events WHERE user_id IS NOT NULL';
   const countParams: any[] = [];
+
+  if (appId) {
+    countQuery += ' AND app_id = ?';
+    countParams.push(appId);
+  }
 
   if (search) {
     countQuery += ' AND user_id LIKE ?';
