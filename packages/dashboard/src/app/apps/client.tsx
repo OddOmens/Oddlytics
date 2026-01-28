@@ -7,8 +7,10 @@ import { StatsCard } from '@/components/StatsCard';
 import { AreaChart, BarList } from '@tremor/react';
 import { Activity, Clock, Calendar } from 'lucide-react';
 import type { EventStat, TimelinePoint } from '@/lib/types';
+import { useSettings } from '@/lib/settings';
 
 export function AppDashboard({ appId }: { appId: string }) {
+    const { formatEventName } = useSettings();
     const [events, setEvents] = useState<EventStat[]>([]);
     const [timeline, setTimeline] = useState<TimelinePoint[]>([]);
     const [loading, setLoading] = useState(true);
@@ -55,7 +57,7 @@ export function AppDashboard({ appId }: { appId: string }) {
                 <div className="col-span-12 md:col-span-4">
                     <StatsCard
                         title="Top Event"
-                        value={events[0]?.event_name || '-'}
+                        value={events[0] ? formatEventName(events[0].event_name) : '-'}
                         icon={<Clock size={20} />}
                         description={events[0] ? `${events[0].count} times` : 'No data'}
                     />
@@ -92,7 +94,7 @@ export function AppDashboard({ appId }: { appId: string }) {
                         <span className="text-xs text-gray-400">All time</span>
                     </div>
                     <BarList
-                        data={events.map(e => ({ name: e.event_name, value: e.count }))}
+                        data={events.map(e => ({ name: formatEventName(e.event_name), value: e.count }))}
                         className="mt-2"
                         showAnimation={true}
                         color="orange"

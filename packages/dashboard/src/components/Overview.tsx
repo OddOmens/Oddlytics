@@ -5,17 +5,19 @@ import { StatsCard } from './StatsCard';
 import type { Overview } from '@/lib/types';
 import { Smartphone, Activity, Users, Globe, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { useSettings } from '@/lib/settings';
 
 interface OverviewProps {
     data: Overview;
 }
 
 export function Overview({ data }: OverviewProps) {
+    const { formatEventName } = useSettings();
     const totalApps = data.apps.length;
     const totalSessions = data.apps.reduce((sum, app) => sum + app.total_sessions, 0);
 
     const topEventsData = data.top_events.map(event => ({
-        name: event.event_name,
+        name: formatEventName(event.event_name),
         value: event.count,
     }));
 
