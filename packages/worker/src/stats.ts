@@ -10,7 +10,7 @@ export async function getOverview(db: D1Database) {
   ).all();
 
   const topEvents = await db.prepare(
-    'SELECT event_name, count FROM top_events LIMIT 10'
+    'SELECT event_name, count FROM top_events ORDER BY count DESC LIMIT 10'
   ).all();
 
   return {
@@ -19,6 +19,11 @@ export async function getOverview(db: D1Database) {
     top_events: topEvents.results || []
   };
 }
+
+const isValidDate = (dateStr: string): boolean => {
+  const date = new Date(dateStr);
+  return !isNaN(date.getTime()) && dateStr.match(/^\d{4}-\d{2}-\d{2}/) !== null;
+};
 
 export async function getEventStats(
   db: D1Database,
@@ -36,11 +41,17 @@ export async function getEventStats(
   }
 
   if (startDate) {
+    if (!isValidDate(startDate)) {
+      throw new Error('Invalid start_date format. Use YYYY-MM-DD');
+    }
     conditions.push('timestamp >= ?');
     params.push(startDate);
   }
 
   if (endDate) {
+    if (!isValidDate(endDate)) {
+      throw new Error('Invalid end_date format. Use YYYY-MM-DD');
+    }
     conditions.push('timestamp <= ?');
     params.push(endDate);
   }
@@ -62,15 +73,21 @@ export async function getTimeline(
   appId?: string,
   days: number = 7
 ) {
+  // Validate days parameter
+  if (isNaN(days) || days < 1 || days > 365) {
+    throw new Error('Invalid days parameter. Must be between 1 and 365');
+  }
+
+  // Use parameterized query for days to prevent SQL injection
   let query = `
     SELECT
       DATE(timestamp) as date,
       COUNT(*) as count
     FROM events
-    WHERE timestamp >= datetime('now', '-${days} days')
+    WHERE timestamp >= datetime('now', '-' || ? || ' days')
   `;
 
-  const params: any[] = [];
+  const params: any[] = [days.toString()];
 
   if (appId) {
     query += ' AND app_id = ?';

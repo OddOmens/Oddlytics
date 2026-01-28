@@ -132,18 +132,34 @@ app.post('/track', async (c) => {
   }
 });
 
-// Stats endpoints (no auth required - add if needed)
+// Stats endpoints - require authentication for consistency with /track endpoint
 app.get('/stats/overview', async (c) => {
+  // Authenticate
+  const apiKey = c.req.header('X-API-KEY');
+  if (!apiKey || apiKey !== c.env.AUTH_KEY) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
   try {
     const data = await getOverview(c.env.DB);
     return c.json(data);
   } catch (error) {
     console.error('Overview error:', error);
-    return c.json({ error: 'Failed to fetch overview' }, 500);
+    const isDev = c.env.ENVIRONMENT !== 'production';
+    return c.json({
+      error: 'Failed to fetch overview',
+      ...(isDev && { message: error instanceof Error ? error.message : 'Unknown error' })
+    }, 500);
   }
 });
 
 app.get('/stats/events', async (c) => {
+  // Authenticate
+  const apiKey = c.req.header('X-API-KEY');
+  if (!apiKey || apiKey !== c.env.AUTH_KEY) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
   try {
     const appId = c.req.query('app_id');
     const startDate = c.req.query('start_date');
@@ -153,20 +169,50 @@ app.get('/stats/events', async (c) => {
     return c.json({ events: data });
   } catch (error) {
     console.error('Events stats error:', error);
-    return c.json({ error: 'Failed to fetch event stats' }, 500);
+    const isDev = c.env.ENVIRONMENT !== 'production';
+
+    // Return 400 for validation errors, 500 for others
+    const isValidationError = error instanceof Error && error.message.includes('Invalid');
+    const statusCode = isValidationError ? 400 : 500;
+
+    return c.json({
+      error: isValidationError ? error.message : 'Failed to fetch event stats',
+      ...(isDev && !isValidationError && { message: error instanceof Error ? error.message : 'Unknown error' })
+    }, statusCode);
   }
 });
 
 app.get('/stats/timeline', async (c) => {
+  // Authenticate
+  const apiKey = c.req.header('X-API-KEY');
+  if (!apiKey || apiKey !== c.env.AUTH_KEY) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
   try {
     const appId = c.req.query('app_id');
-    const days = parseInt(c.req.query('days') || '7');
+    const daysParam = c.req.query('days') || '7';
+    const days = parseInt(daysParam, 10);
+
+    // Validation is now in getTimeline, but we check here for better error messages
+    if (isNaN(days)) {
+      return c.json({ error: 'days parameter must be a number' }, 400);
+    }
 
     const data = await getTimeline(c.env.DB, appId, days);
     return c.json({ timeline: data });
   } catch (error) {
     console.error('Timeline error:', error);
-    return c.json({ error: 'Failed to fetch timeline' }, 500);
+    const isDev = c.env.ENVIRONMENT !== 'production';
+
+    // Return 400 for validation errors, 500 for others
+    const isValidationError = error instanceof Error && error.message.includes('Invalid');
+    const statusCode = isValidationError ? 400 : 500;
+
+    return c.json({
+      error: isValidationError ? error.message : 'Failed to fetch timeline',
+      ...(isDev && !isValidationError && { message: error instanceof Error ? error.message : 'Unknown error' })
+    }, statusCode);
   }
 });
 
