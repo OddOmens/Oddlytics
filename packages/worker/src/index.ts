@@ -348,4 +348,79 @@ app.delete('/aliases', async (c) => {
   }
 });
 
+// Delete Endpoints
+
+app.delete('/events/:eventId', async (c) => {
+  const apiKey = c.req.header('X-API-KEY');
+  if (!apiKey || apiKey !== c.env.AUTH_KEY) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  try {
+    const eventId = c.req.param('eventId');
+    const result = await c.env.DB.prepare('DELETE FROM events WHERE id = ?')
+      .bind(parseInt(eventId, 10))
+      .run();
+
+    if (result.meta.changes === 0) {
+      return c.json({ error: 'Event not found' }, 404);
+    }
+
+    return c.json({ success: true, deleted: result.meta.changes });
+  } catch (error) {
+    console.error('Delete event error:', error);
+    const isDev = c.env.ENVIRONMENT !== 'production';
+    return c.json({
+      error: 'Failed to delete event',
+      ...(isDev && { message: error instanceof Error ? error.message : 'Unknown error' })
+    }, 500);
+  }
+});
+
+app.delete('/users/:userId', async (c) => {
+  const apiKey = c.req.header('X-API-KEY');
+  if (!apiKey || apiKey !== c.env.AUTH_KEY) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  try {
+    const userId = c.req.param('userId');
+    const result = await c.env.DB.prepare('DELETE FROM events WHERE user_id = ?')
+      .bind(userId)
+      .run();
+
+    return c.json({ success: true, deleted: result.meta.changes });
+  } catch (error) {
+    console.error('Delete user events error:', error);
+    const isDev = c.env.ENVIRONMENT !== 'production';
+    return c.json({
+      error: 'Failed to delete user events',
+      ...(isDev && { message: error instanceof Error ? error.message : 'Unknown error' })
+    }, 500);
+  }
+});
+
+app.delete('/apps/:appId', async (c) => {
+  const apiKey = c.req.header('X-API-KEY');
+  if (!apiKey || apiKey !== c.env.AUTH_KEY) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  try {
+    const appId = c.req.param('appId');
+    const result = await c.env.DB.prepare('DELETE FROM events WHERE app_id = ?')
+      .bind(appId)
+      .run();
+
+    return c.json({ success: true, deleted: result.meta.changes });
+  } catch (error) {
+    console.error('Delete app events error:', error);
+    const isDev = c.env.ENVIRONMENT !== 'production';
+    return c.json({
+      error: 'Failed to delete app events',
+      ...(isDev && { message: error instanceof Error ? error.message : 'Unknown error' })
+    }, 500);
+  }
+});
+
 export default app;

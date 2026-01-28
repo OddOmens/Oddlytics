@@ -5,17 +5,20 @@ import { api } from '@/lib/api';
 import { Header } from '@/components/layout/Shell';
 import { StatsCard } from '@/components/StatsCard';
 import { AreaChart, BarList } from '@tremor/react';
-import { Activity, Clock, Calendar, Users, ArrowRight } from 'lucide-react';
+import { Activity, Clock, Calendar, Users, ArrowRight, Trash2 } from 'lucide-react';
 import type { EventStat, TimelinePoint, User } from '@/lib/types';
 import { useSettings } from '@/lib/settings';
 import { useAliases } from '@/lib/alias';
 import { Pencil, X, Check } from 'lucide-react';
 import { Dialog, DialogPanel, Title, Text, Card } from '@tremor/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 
 export function AppDashboard({ appId }: { appId: string }) {
     const { formatEventName } = useSettings();
     const { getAlias, saveAlias } = useAliases();
+    const router = useRouter();
     const [events, setEvents] = useState<EventStat[]>([]);
     const [timeline, setTimeline] = useState<TimelinePoint[]>([]);
     const [stats, setStats] = useState<any>(null);
@@ -25,6 +28,10 @@ export function AppDashboard({ appId }: { appId: string }) {
     // Alias Editing State
     const [editingEvent, setEditingEvent] = useState<{ original: string, current: string } | null>(null);
     const [isSavingAlias, setIsSavingAlias] = useState(false);
+
+    // Delete State
+    const [deleteAppConfirm, setDeleteAppConfirm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         setLoading(true);
@@ -58,6 +65,18 @@ export function AppDashboard({ appId }: { appId: string }) {
         setEditingEvent(null);
     };
 
+    const handleDeleteApp = async () => {
+        setIsDeleting(true);
+        try {
+            await api.deleteApp(appId);
+            router.push('/');
+        } catch (error) {
+            console.error('Failed to delete app:', error);
+            alert('Failed to delete app data. Please try again.');
+            setIsDeleting(false);
+        }
+    };
+
     const totalEvents = events.reduce((sum, e) => sum + e.count, 0);
 
     if (loading) return (
@@ -71,7 +90,16 @@ export function AppDashboard({ appId }: { appId: string }) {
 
     return (
         <div>
-            <Header title={appId} />
+            <div className="flex justify-between items-center mb-6">
+                <Header title={appId} />
+                <button
+                    onClick={() => setDeleteAppConfirm(true)}
+                    className="px-4 py-2 text-sm font-medium text-red-600 hover:text-white hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-xl transition-all flex items-center gap-2"
+                >
+                    <Trash2 size={16} />
+                    Delete App Data
+                </button>
+            </div>
 
             <div className="grid grid-cols-12 gap-6">
                 {/* Main Stats */}
@@ -246,6 +274,16 @@ export function AppDashboard({ appId }: { appId: string }) {
                     </div>
                 </DialogPanel>
             </Dialog>
+
+            {/* Delete App Dialog */}
+            <DeleteConfirmDialog
+                open={deleteAppConfirm}
+                onClose={() => setDeleteAppConfirm(false)}
+                onConfirm={handleDeleteApp}
+                title="Delete App Data"
+                message={`Delete all events for app "${appId}"? This will permanently delete ${totalEvents.toLocaleString()} events. This cannot be undone.`}
+                isDeleting={isDeleting}
+            />
         </div>
     );
 }

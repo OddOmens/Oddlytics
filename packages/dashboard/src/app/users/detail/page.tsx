@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 import { UserDetail, ActivityEvent } from '@/lib/types';
 import { Header } from '@/components/layout/Shell';
 import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
     Calendar,
     Activity,
@@ -18,18 +18,26 @@ import {
     Eye,
     ExternalLink,
     Copy,
-    Check
+    Check,
+    Trash2
 } from 'lucide-react';
 import { useSettings } from '@/lib/settings';
+import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 
 function UserDetailsContent() {
     const { formatEventName } = useSettings();
     const searchParams = useSearchParams();
+    const router = useRouter();
     const userId = searchParams.get('id');
     const [user, setUser] = useState<UserDetail | null>(null);
     const [activity, setActivity] = useState<ActivityEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedApp, setSelectedApp] = useState<string>('');
+
+    // Delete state
+    const [deleteEventId, setDeleteEventId] = useState<number | null>(null);
+    const [deleteUserConfirm, setDeleteUserConfirm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         if (userId) {
@@ -50,6 +58,34 @@ function UserDetailsContent() {
             console.error(e);
         } finally {
             setLoading(false);
+        }
+    }
+
+    async function handleDeleteEvent() {
+        if (!deleteEventId) return;
+        setIsDeleting(true);
+        try {
+            await api.deleteEvent(deleteEventId);
+            setActivity(activity.filter(e => e.id !== deleteEventId));
+            setDeleteEventId(null);
+        } catch (error) {
+            console.error('Failed to delete event:', error);
+            alert('Failed to delete event. Please try again.');
+        } finally {
+            setIsDeleting(false);
+        }
+    }
+
+    async function handleDeleteUser() {
+        if (!userId) return;
+        setIsDeleting(true);
+        try {
+            await api.deleteUser(userId);
+            router.push('/users');
+        } catch (error) {
+            console.error('Failed to delete user:', error);
+            alert('Failed to delete user. Please try again.');
+            setIsDeleting(false);
         }
     }
 
@@ -113,6 +149,14 @@ function UserDetailsContent() {
                             </div>
                         </div>
                     </div>
+
+                    <button
+                        onClick={() => setDeleteUserConfirm(true)}
+                        className="px-4 py-2 text-sm font-medium text-red-600 hover:text-white hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-xl transition-all flex items-center gap-2"
+                    >
+                        <Trash2 size={16} />
+                        Delete User Data
+                    </button>
                 </div>
             </div>
 
@@ -212,7 +256,7 @@ function UserDetailsContent() {
                                     });
 
                                     return groupedActivity.map((event) => (
-                                        <div key={event.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors rounded-xl">
+                                        <div key={event.id} className="group p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors rounded-xl">
                                             <div className="flex justify-between items-start mb-1">
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-medium text-gray-900 dark:text-gray-100">
@@ -223,6 +267,13 @@ function UserDetailsContent() {
                                                             {event.count}x
                                                         </span>
                                                     )}
+                                                    <button
+                                                        onClick={() => setDeleteEventId(event.id)}
+                                                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-all scale-90 hover:scale-100"
+                                                        title="Delete event"
+                                                    >
+                                                        <Trash2 size={12} />
+                                                    </button>
                                                 </div>
                                                 <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
                                                     {new Date(event.timestamp).toLocaleString()}
@@ -244,6 +295,26 @@ function UserDetailsContent() {
                     </div>
                 </div>
             </div>
+
+            {/* Delete Event Dialog */}
+            <DeleteConfirmDialog
+                open={deleteEventId !== null}
+                onClose={() => setDeleteEventId(null)}
+                onConfirm={handleDeleteEvent}
+                title="Delete Event"
+                message="Delete this event? This cannot be undone."
+                isDeleting={isDeleting}
+            />
+
+            {/* Delete User Dialog */}
+            <DeleteConfirmDialog
+                open={deleteUserConfirm}
+                onClose={() => setDeleteUserConfirm(false)}
+                onConfirm={handleDeleteUser}
+                title="Delete User Data"
+                message={`Delete all events for user ${userId}? This will permanently delete ${user?.stats.total_events.toLocaleString()} events. This cannot be undone.`}
+                isDeleting={isDeleting}
+            />
         </main>
     );
 }

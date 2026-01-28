@@ -88,5 +88,23 @@ export const api = {
             method: 'DELETE',
             body: JSON.stringify({ app_id: appId, event_name: eventName })
         });
+    },
+
+    deleteEvent: async (eventId: number) => {
+        return fetchApi<{ success: boolean, deleted: number }>(`/events/${eventId}`, {
+            method: 'DELETE'
+        });
+    },
+
+    deleteUser: async (userId: string) => {
+        return fetchApi<{ success: boolean, deleted: number }>(`/users/${encodeURIComponent(userId)}`, {
+            method: 'DELETE'
+        });
+    },
+
+    deleteApp: async (appId: string) => {
+        return fetchApi<{ success: boolean, deleted: number }>(`/apps/${encodeURIComponent(appId)}`, {
+            method: 'DELETE'
+        });
     }
 };
