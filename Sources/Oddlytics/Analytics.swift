@@ -12,9 +12,18 @@ public enum Analytics {
     /// Persistent anonymous user ID
     private static var userId: String {
         get {
+            // Priority 1: IDFV (Shared across vendor apps on iOS)
+            #if os(iOS)
+            if let idfv = UIDevice.current.identifierForVendor?.uuidString {
+                return idfv
+            }
+            #endif
+            
+            // Priority 2: Persistent Random ID (Fallback for macOS/other)
             if let stored = UserDefaults.standard.string(forKey: "oddlytics_user_id") {
                 return stored
             }
+            
             let newId = UUID().uuidString
             UserDefaults.standard.set(newId, forKey: "oddlytics_user_id")
             return newId
