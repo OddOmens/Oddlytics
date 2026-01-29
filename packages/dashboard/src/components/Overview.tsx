@@ -35,7 +35,7 @@ export function Overview({ data }: OverviewProps) {
     }));
 
     const appsData = apps.map(app => ({
-        name: app.app_id,
+        name: app.display_name || app.app_id,
         value: app.total_events,
     }));
 
@@ -111,10 +111,14 @@ export function Overview({ data }: OverviewProps) {
                             <div className="p-4 rounded-2xl border border-gray-100 dark:border-gray-700 hover:border-primary/30 dark:hover:border-primary/50 hover:bg-primary/5 dark:hover:bg-primary/10 transition-all flex justify-between items-center">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 group-hover:bg-white dark:group-hover:bg-gray-600 group-hover:text-primary transition-colors shadow-sm">
-                                        <Smartphone size={18} />
+                                        {app.icon_url ? (
+                                            <img src={app.icon_url} alt={app.app_id} className="w-full h-full object-cover rounded-full" />
+                                        ) : (
+                                            <Smartphone size={18} />
+                                        )}
                                     </div>
                                     <div>
-                                        <div className="font-semibold text-sm dark:text-gray-200">{app.app_id}</div>
+                                        <div className="font-semibold text-sm dark:text-gray-200">{app.display_name || app.app_id}</div>
                                         <div className="text-xs text-gray-400 dark:text-gray-500">{app.total_events} events</div>
                                     </div>
                                 </div>

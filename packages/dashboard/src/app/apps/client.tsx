@@ -203,10 +203,6 @@ export function AppDashboard({ appId }: { appId: string }) {
 
                 {/* Event List */}
                 <div className="col-span-12 lg:col-span-4 bg-white rounded-3xl p-6 shadow-soft">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-lg">Top Events</h3>
-                        <span className="text-xs text-gray-400">All time</span>
-                    </div>
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="font-bold text-lg">Top Events</h3>
                         <span className="text-xs text-gray-400">All time</span>

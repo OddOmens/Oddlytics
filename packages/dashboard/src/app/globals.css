@@ -56,3 +56,8 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Force Tremor Orange Overrides if needed */
+.tremor-brand-orange {
+  color: #f97316;
+}
