@@ -158,7 +158,8 @@ export async function getTimeline(
   let query = `
     SELECT
       DATE(timestamp) as date,
-      COUNT(*) as count
+      COUNT(*) as count,
+      COUNT(DISTINCT user_id) as user_count
     FROM events
     WHERE date(timestamp) >= ?
   `;

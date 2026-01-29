@@ -141,6 +141,8 @@ app.post('/track', async (c) => {
 
 // Stats endpoints - require authentication for consistency with /track endpoint
 app.get('/stats/overview', async (c) => {
+  // Cache for 60 seconds to reduce DB load
+  c.header('Cache-Control', 'public, max-age=60');
   try {
     const daysParam = c.req.query('days') || 'all';
     let days = 0; // 0 will indicate 'all'
@@ -169,8 +171,8 @@ app.get('/stats/overview', async (c) => {
 });
 
 app.get('/stats/events', async (c) => {
-
-
+  // Cache for 60 seconds
+  c.header('Cache-Control', 'public, max-age=60');
   try {
     const appId = c.req.query('app_id');
     const startDate = c.req.query('start_date');
@@ -194,6 +196,8 @@ app.get('/stats/events', async (c) => {
 });
 
 app.get('/stats/app/:appId', async (c) => {
+  // Cache for 60 seconds
+  c.header('Cache-Control', 'public, max-age=60');
   try {
     const appId = c.req.param('appId');
     const data = await getAppStats(c.env.DB, appId);
@@ -205,8 +209,8 @@ app.get('/stats/app/:appId', async (c) => {
 });
 
 app.get('/stats/timeline', async (c) => {
-
-
+  // Cache for 60 seconds
+  c.header('Cache-Control', 'public, max-age=60');
   try {
     const appId = c.req.query('app_id');
     const daysParam = c.req.query('days') || '7';
@@ -235,6 +239,8 @@ app.get('/stats/timeline', async (c) => {
 });
 
 app.get('/stats/users', async (c) => {
+  // Cache for 60 seconds
+  c.header('Cache-Control', 'public, max-age=60');
   try {
     const limit = parseInt(c.req.query('limit') || '50', 10);
     const offset = parseInt(c.req.query('offset') || '0', 10);
@@ -254,6 +260,8 @@ app.get('/stats/users', async (c) => {
 });
 
 app.get('/stats/users/:userId', async (c) => {
+  // Cache for 60 seconds
+  c.header('Cache-Control', 'public, max-age=60');
   try {
     const userId = c.req.param('userId');
     const data = await getUserDetails(c.env.DB, userId);
@@ -274,6 +282,8 @@ app.get('/stats/users/:userId', async (c) => {
 });
 
 app.get('/stats/users/:userId/activity', async (c) => {
+  // Cache for 60 seconds
+  c.header('Cache-Control', 'public, max-age=60');
   try {
     const userId = c.req.param('userId');
     const appId = c.req.query('app_id');
@@ -294,6 +304,8 @@ app.get('/stats/users/:userId/activity', async (c) => {
 // Alias Endpoints
 
 app.get('/aliases', async (c) => {
+  // Cache for 5 minutes (300 seconds) - configuration rarely changes
+  c.header('Cache-Control', 'public, max-age=300');
   try {
     const appId = c.req.query('app_id');
     const aliases = await getAliases(c.env.DB, appId);
@@ -354,6 +366,8 @@ app.delete('/aliases', async (c) => {
 // App Settings Endpoints
 
 app.get('/stats/app/:appId/settings', async (c) => {
+  // Cache for 5 minutes (300 seconds) - settings rarely change
+  c.header('Cache-Control', 'public, max-age=300');
   try {
     const appId = c.req.param('appId');
     const settings = await getAppSettings(c.env.DB, appId);

@@ -30,6 +30,7 @@ export interface EventStat {
 export interface TimelinePoint {
     date: string;
     count: number;
+    user_count?: number;
 }
 
 export interface User {

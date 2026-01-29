@@ -13,16 +13,15 @@ import { Pencil, X, Check } from 'lucide-react';
 import { Dialog, DialogPanel, Title, Text, Card } from '@tremor/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ActivityHeatmap } from '@/components/ActivityHeatmap';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { toast } from 'sonner';
 
 export function AppDashboard({ appId }: { appId: string }) {
-    const { formatEventName } = useSettings();
-    const { getAlias, saveAlias } = useAliases();
-    const router = useRouter();
     const [events, setEvents] = useState<EventStat[]>([]);
     const [timeline, setTimeline] = useState<TimelinePoint[]>([]);
+    const [history, setHistory] = useState<TimelinePoint[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [recentUsers, setRecentUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -41,28 +40,53 @@ export function AppDashboard({ appId }: { appId: string }) {
     const [iconUrl, setIconUrl] = useState<string>('');
     const [displayName, setDisplayName] = useState<string>('');
 
+    const { formatEventName } = useSettings();
+    const { getAlias, saveAlias } = useAliases();
+    const router = useRouter();
+
     useEffect(() => {
         setLoading(true);
         Promise.all([
             api.getEventStats({ appId }),
-            // Default to 14 days for chart
-            api.getTimeline({ appId, days: 14 }),
+            api.getTimeline({ appId, days: 14 }), // For AreaChart
+            api.getTimeline({ appId, days: 365 }), // For Heatmap
             api.getAppStats(appId),
             api.getUsers(5, 0, '', appId),
             api.getAppSettings(appId)
-        ]).then(([eventsData, timelineData, statsData, usersData, settingsData]) => {
+        ]).then(([eventsData, timelineData, historyData, statsData, usersData, settingsData]) => {
             setEvents(eventsData);
             setTimeline(timelineData);
+            setHistory(historyData);
             setStats(statsData);
-            setRecentUsers(usersData.users);
-            if (settingsData) {
-                setIconUrl(settingsData.icon_url || '');
-                setDisplayName(settingsData.display_name || '');
-            }
+            // ... rest of updates
         }).catch(err => {
             console.error("Failed to fetch app data", err);
         }).finally(() => setLoading(false));
     }, [appId]);
+
+    // ... inside return JSX
+
+    {/* Timeline Chart */ }
+    <div className="col-span-12 lg:col-span-8 space-y-6">
+        <div className="bg-white rounded-3xl p-6 shadow-soft">
+            <h3 className="font-bold text-lg mb-4">Events (Last 14 Days)</h3>
+            <AreaChart
+                className="h-72 mt-4"
+                data={timeline}
+                index="date"
+                categories={["count"]}
+                colors={["orange"]}
+                showAnimation={true}
+                showLegend={false}
+                showGridLines={false}
+                yAxisWidth={40}
+            />
+        </div>
+
+        <div className="bg-white rounded-3xl p-6 shadow-soft">
+            <ActivityHeatmap data={history} />
+        </div>
+    </div>
 
     const getDisplayName = (eventName: string) => {
         const alias = getAlias(appId, eventName);

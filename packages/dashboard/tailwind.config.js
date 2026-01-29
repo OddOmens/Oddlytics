@@ -114,7 +114,7 @@ module.exports = {
         },
         {
             pattern:
-                /^(bg|fill|text)-(violet|indigo|rose|cyan|amber)-(400|500|600)$/,
+                /^(bg|fill|text)-(violet|indigo|rose|cyan|amber|orange)-(400|500|600)$/,
         },
     ],
     plugins: [],

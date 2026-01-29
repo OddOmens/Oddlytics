@@ -35,8 +35,8 @@ public enum Analytics {
         endpoint: String,
         apiKey: String,
         appId: String,
-        batchSize: Int = 20,
-        batchInterval: TimeInterval = 10.0,
+        batchSize: Int = 50,
+        batchInterval: TimeInterval = 30.0,
         debugMode: Bool = false
     ) {
         let config = Configuration(
@@ -50,6 +50,8 @@ public enum Analytics {
 
         self.configuration = config
         self.batcher = EventBatcher(configuration: config)
+        
+        setupLifecycleObservers()
 
         if config.debugMode {
             print("[Oddlytics] Configured with endpoint: \(endpoint)")
@@ -59,6 +61,18 @@ public enum Analytics {
                 print("[Oddlytics] Device ID (IDFV): \(deviceId)")
             }
         }
+    }
+    
+    private static func setupLifecycleObservers() {
+        #if os(iOS)
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willResignActiveNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            flush()
+        }
+        #endif
     }
 
     /// Track an event
