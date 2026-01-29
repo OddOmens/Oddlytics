@@ -58,35 +58,15 @@ export function AppDashboard({ appId }: { appId: string }) {
             setTimeline(timelineData);
             setHistory(historyData);
             setStats(statsData);
-            // ... rest of updates
+            setRecentUsers(usersData.users);
+            if (settingsData) {
+                setIconUrl(settingsData.icon_url || '');
+                setDisplayName(settingsData.display_name || '');
+            }
         }).catch(err => {
             console.error("Failed to fetch app data", err);
         }).finally(() => setLoading(false));
     }, [appId]);
-
-    // ... inside return JSX
-
-    {/* Timeline Chart */ }
-    <div className="col-span-12 lg:col-span-8 space-y-6">
-        <div className="bg-white rounded-3xl p-6 shadow-soft">
-            <h3 className="font-bold text-lg mb-4">Events (Last 14 Days)</h3>
-            <AreaChart
-                className="h-72 mt-4"
-                data={timeline}
-                index="date"
-                categories={["count"]}
-                colors={["orange"]}
-                showAnimation={true}
-                showLegend={false}
-                showGridLines={false}
-                yAxisWidth={40}
-            />
-        </div>
-
-        <div className="bg-white rounded-3xl p-6 shadow-soft">
-            <ActivityHeatmap data={history} />
-        </div>
-    </div>
 
     const getDisplayName = (eventName: string) => {
         const alias = getAlias(appId, eventName);
@@ -108,7 +88,6 @@ export function AppDashboard({ appId }: { appId: string }) {
             await api.updateAppSettings(appId, { icon_url: iconUrl || null, display_name: displayName || null });
             toast.success('App settings updated');
             setIsCustomizing(false);
-            // Refresh to update sidebar
             window.location.reload();
         } catch (error) {
             console.error('Failed to update app settings:', error);
@@ -209,30 +188,36 @@ export function AppDashboard({ appId }: { appId: string }) {
                     />
                 </div>
 
-                {/* Timeline Chart */}
-                <div className="col-span-12 lg:col-span-8 bg-white rounded-3xl p-6 shadow-soft">
-                    <h3 className="font-bold text-lg mb-4">Events (Last 14 Days)</h3>
-                    <AreaChart
-                        className="h-72 mt-4"
-                        data={timeline}
-                        index="date"
-                        categories={["count"]}
-                        colors={["orange"]}
-                        showAnimation={true}
-                        showLegend={false}
-                        showGridLines={false}
-                        yAxisWidth={40}
-                    />
-                </div>
-
-                {/* Event List */}
-                <div className="col-span-12 lg:col-span-4 bg-white rounded-3xl p-6 shadow-soft">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="font-bold text-lg">Top Events</h3>
-                        <span className="text-xs text-gray-400">All time</span>
+                {/* Timeline & Heatmap */}
+                <div className="col-span-12 space-y-6">
+                    <div className="bg-white rounded-3xl p-6 shadow-soft">
+                        <h3 className="font-bold text-lg mb-4">Events (Last 14 Days)</h3>
+                        <AreaChart
+                            className="h-72 mt-4"
+                            data={timeline}
+                            index="date"
+                            categories={["count"]}
+                            colors={["orange"]}
+                            showAnimation={true}
+                            showLegend={false}
+                            showGridLines={false}
+                            yAxisWidth={40}
+                        />
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="bg-white rounded-3xl p-6 shadow-soft">
+                        <ActivityHeatmap data={history} />
+                    </div>
+                </div>
+
+                {/* All Events List */}
+                <div className="col-span-12 bg-white rounded-3xl p-6 shadow-soft">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="font-bold text-lg">All Events</h3>
+                        <span className="text-xs text-gray-400">Ordered by frequency</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
                         {events.map((e) => {
                             const maxVal = events[0]?.count || 1;
                             const percentage = Math.round((e.count / maxVal) * 100);
@@ -241,18 +226,18 @@ export function AppDashboard({ appId }: { appId: string }) {
                             return (
                                 <div key={e.event_name} className="group">
                                     <div className="flex justify-between text-sm mb-1.5 items-center">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-medium text-gray-700">{displayName}</span>
+                                        <div className="flex items-center gap-2 truncate">
+                                            <span className="font-medium text-gray-700 truncate" title={displayName}>{displayName}</span>
                                             <Tooltip content="Rename event">
                                                 <button
                                                     onClick={() => setEditingEvent({ original: e.event_name, current: displayName })}
-                                                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded-md text-gray-400 hover:text-primary transition-all scale-90 hover:scale-100"
+                                                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded-md text-gray-400 hover:text-primary transition-all scale-90 hover:scale-100 flex-shrink-0"
                                                 >
                                                     <Pencil size={12} />
                                                 </button>
                                             </Tooltip>
                                         </div>
-                                        <span className="text-gray-500 font-mono text-xs">{e.count.toLocaleString()}</span>
+                                        <span className="text-gray-500 font-mono text-xs ml-2">{e.count.toLocaleString()}</span>
                                     </div>
                                     <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden">
                                         <div
@@ -264,50 +249,11 @@ export function AppDashboard({ appId }: { appId: string }) {
                             );
                         })}
                     </div>
-                </div>
-
-                {/* Recent Users for this App */}
-                <div className="col-span-12 bg-white rounded-3xl p-6 shadow-soft">
-                    <div className="flex justify-between items-center mb-6">
-                        <div className="flex items-center gap-2">
-                            <Users size={20} className="text-gray-400" />
-                            <h3 className="font-bold text-lg">Recent Users</h3>
+                    {events.length === 0 && (
+                        <div className="py-10 text-center text-gray-400 text-sm">
+                            No events found for this app.
                         </div>
-                        <Link
-                            href={`/users?app_id=${appId}`}
-                            className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
-                        >
-                            View all users <ArrowRight size={14} />
-                        </Link>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                        {recentUsers.map((user) => (
-                            <Link key={user.user_id} href={`/users/detail?id=${user.user_id}`}>
-                                <div className="p-4 rounded-2xl border border-gray-100 hover:border-primary/30 hover:bg-primary/5 transition-all text-center">
-                                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 mx-auto mb-3">
-                                        <Users size={20} />
-                                    </div>
-                                    <Tooltip content={user.user_id}>
-                                        <div className="font-mono text-[10px] text-gray-500 truncate mb-1">
-                                            {user.user_id}
-                                        </div>
-                                    </Tooltip>
-                                    <div className="text-sm font-semibold text-gray-900">
-                                        {user.total_events} events
-                                    </div>
-                                    <div className="text-[10px] text-gray-400 mt-1">
-                                        Seen {new Date(user.last_seen).toLocaleDateString()}
-                                    </div>
-                                </div>
-                            </Link>
-                        ))}
-                        {recentUsers.length === 0 && (
-                            <div className="col-span-full py-10 text-center text-gray-400 text-sm">
-                                No users found for this app.
-                            </div>
-                        )}
-                    </div>
+                    )}
                 </div>
             </div>
 

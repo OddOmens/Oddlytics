@@ -44,8 +44,8 @@ public enum Analytics {
         endpoint: String,
         apiKey: String,
         appId: String,
-        batchSize: Int = 50,
-        batchInterval: TimeInterval = 30.0,
+        batchSize: Int = 10,
+        batchInterval: TimeInterval = 5.0,
         debugMode: Bool = false
     ) {
         let config = Configuration(
