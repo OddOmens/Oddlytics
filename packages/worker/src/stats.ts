@@ -357,3 +357,41 @@ export async function deleteAlias(db: D1Database, appId: string, eventName: stri
     .bind(appId, eventName)
     .run();
 }
+
+export async function getGroups(db: D1Database, appId: string) {
+  // Query to get event counts grouped by metadata.group
+  // aggregated by group name AND event name
+  const query = `
+    SELECT 
+      json_extract(metadata, '$.group') as group_name,
+      event_name,
+      COUNT(*) as count
+    FROM events
+    WHERE app_id = ? 
+      AND json_extract(metadata, '$.group') IS NOT NULL
+      AND json_extract(metadata, '$.group') != ''
+    GROUP BY group_name, event_name
+    ORDER BY count DESC
+  `;
+
+  const result = await db.prepare(query).bind(appId).all();
+
+  // Post-process to structure as Group[]
+  const groupsMap = new Map<string, { name: string, count: number }[]>();
+
+  (result.results || []).forEach((row: any) => {
+    const groupName = row.group_name;
+    if (!groupsMap.has(groupName)) {
+      groupsMap.set(groupName, []);
+    }
+    groupsMap.get(groupName)?.push({
+      name: row.event_name,
+      count: row.count
+    });
+  });
+
+  return Array.from(groupsMap.entries()).map(([name, events]) => ({
+    name,
+    events: events.sort((a, b) => b.count - a.count)
+  })).sort((a, b) => a.name.localeCompare(b.name));
+}

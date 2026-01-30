@@ -45,6 +45,10 @@ export const api = {
         return fetchApi<any[]>(`/stats/timeline?${params}`).then((res: any) => res.timeline);
     },
 
+    getGroups: async (appId: string) => {
+        return fetchApi<{ groups: any[] }>(`/stats/groups?app_id=${encodeURIComponent(appId)}`).then(res => res.groups);
+    },
+
     getAppStats: async (appId: string) => {
         return fetchApi<any>(`/stats/app/${encodeURIComponent(appId)}`);
     },

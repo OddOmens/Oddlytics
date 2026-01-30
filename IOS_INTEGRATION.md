@@ -100,6 +100,15 @@ var body: some View {
 }
 ```
 
+### Grouping Events
+You can assign events to a custom group (e.g., "Sleep Aids", "Achievements") to automatically create a dedicated section in the dashboard.
+
+```swift
+// Events will appear in a "Sleep Aids" section
+Analytics.track("Melatonin", group: "Sleep Aids")
+Analytics.track("Magnesium", group: "Sleep Aids", metadata: ["dosage": "5mg"])
+```
+
 ## 4. Advanced Usage
 
 ### Manual Flushing

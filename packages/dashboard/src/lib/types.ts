@@ -14,6 +14,14 @@ export interface TopEvent {
     app_count?: number;
 }
 
+export interface Group {
+    name: string;
+    events: {
+        name: string;
+        count: number;
+    }[];
+}
+
 export interface Overview {
     total_events: number;
     previous_total_events?: number;
@@ -67,3 +75,4 @@ export interface ActivityEvent {
     session_id: string;
     metadata?: any;
 }
+

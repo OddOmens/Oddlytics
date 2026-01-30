@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type { Env, TrackEventRequest, TrackBatchRequest } from './types';
-import { getOverview, getEventStats, getTimeline, getUsers, getUserDetails, getUserActivity, getAliases, upsertAlias, deleteAlias, getAppStats, getAppSettings, upsertAppSettings } from './stats';
+import { getOverview, getEventStats, getTimeline, getUsers, getUserDetails, getUserActivity, getAliases, upsertAlias, deleteAlias, getAppStats, getAppSettings, upsertAppSettings, getGroups } from './stats';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -235,6 +235,27 @@ app.get('/stats/timeline', async (c) => {
       error: isValidationError ? error.message : 'Failed to fetch timeline',
       ...(isDev && !isValidationError && { message: error instanceof Error ? error.message : 'Unknown error' })
     }, statusCode);
+  }
+});
+
+app.get('/stats/groups', async (c) => {
+  // Cache for 60 seconds
+  c.header('Cache-Control', 'public, max-age=60');
+  try {
+    const appId = c.req.query('app_id');
+    if (!appId) {
+      return c.json({ error: 'app_id is required' }, 400);
+    }
+
+    const groups = await getGroups(c.env.DB, appId);
+    return c.json({ groups });
+  } catch (error) {
+    console.error('Groups error:', error);
+    const isDev = c.env.ENVIRONMENT !== 'production';
+    return c.json({
+      error: 'Failed to fetch groups',
+      ...(isDev && { message: error instanceof Error ? error.message : 'Unknown error' })
+    }, 500);
   }
 });
 

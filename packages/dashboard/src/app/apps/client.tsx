@@ -6,7 +6,7 @@ import { Header } from '@/components/layout/Shell';
 import { StatsCard } from '@/components/StatsCard';
 import { AreaChart, BarList } from '@tremor/react';
 import { Activity, Clock, Calendar, Users, ArrowRight, Trash2, Smartphone } from 'lucide-react';
-import type { EventStat, TimelinePoint, User } from '@/lib/types';
+import type { EventStat, TimelinePoint, User, Group } from '@/lib/types';
 import { useSettings } from '@/lib/settings';
 import { useAliases } from '@/lib/alias';
 import { Pencil, X, Check } from 'lucide-react';
@@ -24,6 +24,7 @@ export function AppDashboard({ appId }: { appId: string }) {
     const [history, setHistory] = useState<TimelinePoint[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [recentUsers, setRecentUsers] = useState<User[]>([]);
+    const [groups, setGroups] = useState<Group[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Alias Editing State
@@ -52,13 +53,15 @@ export function AppDashboard({ appId }: { appId: string }) {
             api.getTimeline({ appId, days: 365 }), // For Heatmap
             api.getAppStats(appId),
             api.getUsers(5, 0, '', appId),
-            api.getAppSettings(appId)
-        ]).then(([eventsData, timelineData, historyData, statsData, usersData, settingsData]) => {
+            api.getAppSettings(appId),
+            api.getGroups(appId)
+        ]).then(([eventsData, timelineData, historyData, statsData, usersData, settingsData, groupsData]) => {
             setEvents(eventsData);
             setTimeline(timelineData);
             setHistory(historyData);
             setStats(statsData);
             setRecentUsers(usersData.users);
+            setGroups(groupsData);
             if (settingsData) {
                 setIconUrl(settingsData.icon_url || '');
                 setDisplayName(settingsData.display_name || '');
@@ -209,6 +212,49 @@ export function AppDashboard({ appId }: { appId: string }) {
                         <ActivityHeatmap data={history} />
                     </div>
                 </div>
+
+                {/* Grouped Events Sections */}
+                {groups.map((group) => (
+                    <div key={group.name} className="col-span-12 bg-white rounded-3xl p-6 shadow-soft">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="font-bold text-lg">{group.name}</h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
+                            {group.events.map((e) => {
+                                // Find the max value relative to this group for the progress bar
+                                const maxVal = group.events[0]?.count || 1;
+                                const percentage = Math.round((e.count / maxVal) * 100);
+                                const displayName = getDisplayName(e.name);
+
+                                return (
+                                    <div key={e.name} className="group">
+                                        <div className="flex justify-between text-sm mb-1.5 items-center">
+                                            <div className="flex items-center gap-2 truncate">
+                                                <span className="font-medium text-gray-700 truncate" title={displayName}>{displayName}</span>
+                                                <Tooltip content="Rename event">
+                                                    <button
+                                                        onClick={() => setEditingEvent({ original: e.name, current: displayName })}
+                                                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded-md text-gray-400 hover:text-primary transition-all scale-90 hover:scale-100 flex-shrink-0"
+                                                    >
+                                                        <Pencil size={12} />
+                                                    </button>
+                                                </Tooltip>
+                                            </div>
+                                            <span className="text-gray-500 font-mono text-xs ml-2">{e.count.toLocaleString()}</span>
+                                        </div>
+                                        <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-indigo-500 rounded-full transition-all duration-500 ease-out"
+                                                style={{ width: `${percentage}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ))}
 
                 {/* All Events List */}
                 <div className="col-span-12 bg-white rounded-3xl p-6 shadow-soft">

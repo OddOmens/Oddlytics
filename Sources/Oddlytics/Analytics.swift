@@ -85,16 +85,25 @@ public enum Analytics {
     }
 
     /// Track an event
-    public static func track(_ eventName: String, metadata: [String: String] = [:]) {
+    /// - Parameters:
+    ///   - eventName: Name of the event
+    ///   - group: Optional group name to organize events in the dashboard
+    ///   - metadata: Key-value pairs of metadata
+    public static func track(_ eventName: String, group: String? = nil, metadata: [String: String] = [:]) {
         guard let config = configuration else {
             print("[Oddlytics] Warning: Analytics not configured. Call configure() first.")
             return
         }
 
+        var finalMetadata = metadata
+        if let group = group {
+            finalMetadata["group"] = group
+        }
+
         let event = Event(
             event: eventName,
             appId: config.appId,
-            metadata: metadata,
+            metadata: finalMetadata,
             sessionId: sessionId,
             userId: userId,
             deviceId: deviceId
